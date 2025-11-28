@@ -23,7 +23,7 @@ from typing import Annotated, Any, Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 
-from .schema import (
+from ._schema import (
     AnyEvent,
     AnyObservation,
     ArticleObservation,
@@ -177,7 +177,7 @@ class GHArchiveQuery(BaseModel):
     repo: RepositoryQuery | None = None
     actor: str | None = None
     event_type: str | None = None
-    from_date: str = Field(..., pattern=r"^\d{8}$")
+    from_date: str = Field(..., pattern=r"^\d{12}$")  # YYYYMMDDHHMM
     to_date: str | None = None
 
     @model_validator(mode="after")
@@ -401,14 +401,20 @@ class GHArchiveClient:
         """Query GH Archive for events."""
         client = self._get_client()
 
-        # Build table reference
-        if to_date and to_date != from_date:
-            table = f"`githubarchive.day.{from_date[:6]}*`"
-        else:
-            table = f"`githubarchive.day.{from_date}`"
+        # Build table reference - use daily table
+        # from_date is YYYYMMDDHHMM format (12 digits), extract day part
+        day = from_date[:8]
+        table = f"`githubarchive.day.{day}`"
 
         # Build WHERE clauses
         clauses = []
+
+        # Filter by hour and minute using created_at timestamp
+        hour = int(from_date[8:10])
+        minute = int(from_date[10:12])
+        clauses.append(f"EXTRACT(HOUR FROM created_at) = {hour}")
+        clauses.append(f"EXTRACT(MINUTE FROM created_at) = {minute}")
+
         if repo:
             clauses.append(f"repo.name = '{repo}'")
         if actor:
@@ -1185,10 +1191,14 @@ def create_commit_observation(
     author = commit["author"]
     committer = commit["committer"]
 
+    # GitHub user may be None for old commits (no linked account)
+    gh_author = data.get("author") or {}
+    actor_login = gh_author.get("login") or author["name"]
+
     return CommitObservation(
         evidence_id=_generate_evidence_id("commit", query.repo.full_name, data["sha"]),
         original_when=_parse_datetime(author.get("date")),
-        original_who=_make_github_actor(data.get("author", {}).get("login", author["name"])),
+        original_who=_make_github_actor(actor_login),
         original_what=commit["message"].split("\n")[0],
         observed_when=now,
         observed_by=EvidenceSource.GITHUB,
@@ -1676,13 +1686,32 @@ class EvidenceFactory:
 
     def events_from_gharchive(
         self,
-        from_date: str,
+        timestamp: str,
         repo: str | None = None,
         actor: str | None = None,
         event_type: str | None = None,
-        to_date: str | None = None,
     ) -> list[AnyEvent]:
-        """Query GH Archive and create Events."""
+        """Query GH Archive and create Events.
+
+        Args:
+            timestamp: Specific time in YYYYMMDDHHMM format (e.g., "202507131207" for July 13, 2025 12:07 UTC)
+            repo: Repository in "owner/name" format (required if no actor)
+            actor: GitHub username (required if no repo)
+            event_type: Filter by event type (e.g., "PushEvent")
+
+        Raises:
+            ValueError: If timestamp is not 12 digits or neither repo nor actor is specified
+        """
+        if len(timestamp) != 12 or not timestamp.isdigit():
+            raise ValueError(
+                f"timestamp must be YYYYMMDDHHMM format (12 digits), got: {timestamp}"
+            )
+
+        if not repo and not actor:
+            raise ValueError(
+                "Must specify at least 'repo' or 'actor' to avoid expensive full-table scans"
+            )
+
         repo_query = None
         if repo:
             parts = repo.split("/", 1)
@@ -1693,16 +1722,16 @@ class EvidenceFactory:
             repo=repo_query,
             actor=actor,
             event_type=event_type,
-            from_date=from_date,
-            to_date=to_date,
+            from_date=timestamp,
+            to_date=timestamp,
         )
 
         rows = self.gharchive.query_events(
             repo=repo_query.full_name if repo_query else None,
             actor=actor,
             event_type=event_type,
-            from_date=from_date,
-            to_date=to_date,
+            from_date=timestamp,
+            to_date=timestamp,
         )
 
         events = []

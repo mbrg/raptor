@@ -1,12 +1,39 @@
 ---
 name: github-forensics-schema
 description: Pydantic schema for GitHub forensic evidence. Event (when/who/what) and Observation (original + observer perspectives).
-version: 3.1
+version: 4.0
 author: mbrg
 tags: [github, forensics, schema, pydantic, osint]
 ---
 
 # GitHub Forensics Evidence Schema
+
+Evidence is created ONLY through the `EvidenceFactory` which fetches data from
+trusted third-party sources. Direct instantiation of data classes is not possible.
+
+## Quick Start
+
+```python
+from src import EvidenceFactory, load_evidence_from_json, IOCType
+
+factory = EvidenceFactory()
+
+# Fetch from GitHub API (verified)
+commit = factory.commit("aws", "aws-toolkit-vscode", "678851b...")
+pr = factory.pull_request("aws", "aws-toolkit-vscode", 7710)
+
+# Fetch from GH Archive BigQuery (verified)
+events = factory.events_from_gharchive(from_date="20250713", repo="aws/aws-toolkit-vscode")
+
+# Create IOC (verifies value exists in source URL)
+ioc = factory.ioc(IOCType.COMMIT_SHA, "678851b...", source_url="https://mbgsec.com/...")
+
+# Create article observation
+article = factory.article(url="https://...", title="...", author="...")
+
+# Load previously saved evidence from JSON
+evidence = load_evidence_from_json(json_data)
+```
 
 ## Two Evidence Types
 
@@ -78,14 +105,19 @@ All observations have `is_deleted: bool` property.
 
 ## Real-World Example: Amazon Q Supply Chain Attack
 
-Timeline evidence from the July 2025 Amazon Q prompt infection investigation:
+Timeline evidence from the July 2025 Amazon Q prompt infection investigation.
+
+**Note:** The examples below show the structure of evidence objects returned by the factory.
+All evidence is created through `EvidenceFactory` only.
 
 ### Events from GH Archive
 
 ```python
-from datetime import datetime, timezone
-from src.schema import *
-from src.creation import _generate_evidence_id
+# Fetch events from GH Archive via factory
+factory = EvidenceFactory()
+events = factory.events_from_gharchive(from_date="20250713", repo="aws/aws-toolkit-vscode")
+
+# Events have this structure:
 
 # Deleted issue created by threat actor
 IssueEvent(
@@ -270,10 +302,15 @@ IOC(
 )
 ```
 
-## Usage with EvidenceFactory
+## Creating Evidence
+
+All evidence is created through `EvidenceFactory`. This ensures data is fetched
+from trusted third-party sources and cannot be fabricated.
+
+### Via EvidenceFactory
 
 ```python
-from src.creation import EvidenceFactory
+from src import EvidenceFactory, IOCType
 
 factory = EvidenceFactory()
 
@@ -291,12 +328,43 @@ article = factory.article(
     source_name="mbgsec.com",
 )
 
+# Create IOC (verifies value exists in source URL)
+ioc = factory.ioc(
+    ioc_type=IOCType.COMMIT_SHA,
+    value="678851bbe9776228f55e0460e66a6167ac2a1685",
+    source_url="https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/",
+)
+
 # Query GH Archive for events (requires BigQuery credentials)
-# events = factory.events_from_gharchive(
-#     from_date="20250713",
-#     repo="aws/aws-toolkit-vscode",
-#     actor="lkmanka58",
-# )
+events = factory.events_from_gharchive(
+    from_date="20250713",
+    repo="aws/aws-toolkit-vscode",
+    actor="lkmanka58",
+)
+```
+
+### Loading from JSON (deserialization)
+
+```python
+from src import load_evidence_from_json
+import json
+
+# Load previously serialized evidence
+with open("evidence.json") as f:
+    data = json.load(f)
+
+evidence = load_evidence_from_json(data)  # Returns correct Event/Observation type
+```
+
+### Type Hints Only
+
+For type annotations without instantiation:
+
+```python
+from src.types import CommitObservation, IssueEvent
+
+def analyze_commit(commit: CommitObservation) -> str:
+    return f"Commit {commit.sha[:8]} by {commit.author.name}"
 ```
 
 ## JSON Export

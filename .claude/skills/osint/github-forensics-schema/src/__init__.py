@@ -1,14 +1,37 @@
 """
 GitHub Forensics Evidence Schema
 
-Event: when, who, what (something happened)
-Observation: original (when/who/what) + observer (when/by/what)
+Evidence objects are created ONLY through the EvidenceFactory which fetches
+and verifies data from trusted third-party sources (GitHub API, GH Archive BigQuery,
+Wayback Machine, security vendor URLs).
 
-Creation functions for verified evidence objects.
+Usage:
+    from src import EvidenceFactory
+
+    factory = EvidenceFactory()
+
+    # Verified from GitHub API
+    commit = factory.commit("aws", "aws-toolkit-vscode", "678851b...")
+    pr = factory.pull_request("aws", "aws-toolkit-vscode", 7710)
+
+    # Verified from GH Archive BigQuery
+    events = factory.events_from_gharchive(from_date="20250713", repo="aws/aws-toolkit-vscode")
+
+    # Verified IOC (fetches source URL to confirm value exists)
+    ioc = factory.ioc(IOCType.COMMIT_SHA, "678851b...", source_url="https://...")
+
+For loading previously serialized evidence from JSON:
+    from src import load_evidence_from_json
+    evidence = load_evidence_from_json(json_data)
+
+Type hints only (for static analysis):
+    from src.types import CommitObservation, IssueObservation
 """
 
-from .creation import (
-    # Query Models
+from ._creation import (
+    # Factory - THE ONLY WAY to create verified evidence
+    EvidenceFactory,
+    # Query Models - For type hints in factory method signatures
     RepositoryQuery,
     CommitQuery,
     IssueQuery,
@@ -20,46 +43,10 @@ from .creation import (
     WikiQuery,
     WaybackQuery,
     GHArchiveQuery,
-    # Source Clients
-    GitHubClient,
-    WaybackClient,
-    GHArchiveClient,
-    GitClient,
-    # Factory
-    EvidenceFactory,
-    # Event Creators
-    create_push_event_from_gharchive,
-    create_pull_request_event_from_gharchive,
-    create_issue_event_from_gharchive,
-    create_issue_comment_event_from_gharchive,
-    create_create_event_from_gharchive,
-    create_delete_event_from_gharchive,
-    create_fork_event_from_gharchive,
-    create_workflow_run_event_from_gharchive,
-    create_release_event_from_gharchive,
-    create_watch_event_from_gharchive,
-    create_member_event_from_gharchive,
-    create_public_event_from_gharchive,
-    create_event_from_gharchive,
-    # Observation Creators - From GH Archive (deleted content recovery)
-    create_issue_observation_from_gharchive,
-    create_pr_observation_from_gharchive,
-    create_commit_observation_from_gharchive,
-    create_force_push_observation_from_gharchive,
-    # Observation Creators - From GitHub/Wayback
-    create_commit_observation,
-    create_commit_observation_from_git,
-    create_issue_observation,
-    create_file_observation,
-    create_branch_observation,
-    create_tag_observation,
-    create_release_observation,
-    create_fork_observations,
-    create_snapshot_observation,
-    create_ioc,
 )
-from .schema import (
-    # Enums
+
+# Enums - Safe to expose, these are just constants
+from ._schema import (
     EvidenceSource,
     EventType,
     RefType,
@@ -67,92 +54,104 @@ from .schema import (
     IssueAction,
     WorkflowConclusion,
     IOCType,
-    # Common
-    GitHubActor,
-    GitHubRepository,
-    VerificationInfo,
-    # Events
-    Event,
-    CommitInPush,
-    PushEvent,
-    PullRequestEvent,
-    IssueEvent,
-    IssueCommentEvent,
-    CreateEvent,
-    DeleteEvent,
-    ForkEvent,
-    WorkflowRunEvent,
-    ReleaseEvent,
-    WatchEvent,
-    MemberEvent,
-    PublicEvent,
-    AnyEvent,
-    # Observations
-    Observation,
-    CommitAuthor,
-    FileChange,
-    CommitObservation,
-    IssueObservation,
-    FileObservation,
-    WikiObservation,
-    ForkObservation,
-    BranchObservation,
-    TagObservation,
-    ReleaseObservation,
-    WaybackSnapshot,
-    SnapshotObservation,
-    IOC,
-    AnyObservation,
-    AnyEvidence,
 )
 
+
+def load_evidence_from_json(data: dict) -> "AnyEvidence":
+    """
+    Load a previously serialized evidence object from JSON.
+
+    This is the ONLY supported way to instantiate evidence classes
+    outside of the EvidenceFactory. Use this to load evidence that
+    was previously created via the factory and serialized to JSON.
+
+    Args:
+        data: Dictionary from JSON deserialization (e.g., json.load())
+
+    Returns:
+        The appropriate Event or Observation instance
+
+    Raises:
+        ValueError: If the data cannot be parsed into a known evidence type
+    """
+    from ._schema import (
+        # Events
+        PushEvent,
+        PullRequestEvent,
+        IssueEvent,
+        IssueCommentEvent,
+        CreateEvent,
+        DeleteEvent,
+        ForkEvent,
+        WorkflowRunEvent,
+        ReleaseEvent,
+        WatchEvent,
+        MemberEvent,
+        PublicEvent,
+        # Observations
+        CommitObservation,
+        IssueObservation,
+        FileObservation,
+        WikiObservation,
+        ForkObservation,
+        BranchObservation,
+        TagObservation,
+        ReleaseObservation,
+        SnapshotObservation,
+        IOC,
+        ArticleObservation,
+    )
+
+    # Determine type from discriminator fields
+    if "event_type" in data:
+        event_map = {
+            "push": PushEvent,
+            "pull_request": PullRequestEvent,
+            "issue": IssueEvent,
+            "issue_comment": IssueCommentEvent,
+            "create": CreateEvent,
+            "delete": DeleteEvent,
+            "fork": ForkEvent,
+            "workflow_run": WorkflowRunEvent,
+            "release": ReleaseEvent,
+            "watch": WatchEvent,
+            "member": MemberEvent,
+            "public": PublicEvent,
+        }
+        event_cls = event_map.get(data["event_type"])
+        if event_cls:
+            return event_cls.model_validate(data)
+        raise ValueError(f"Unknown event_type: {data['event_type']}")
+
+    if "observation_type" in data:
+        obs_map = {
+            "commit": CommitObservation,
+            "issue": IssueObservation,
+            "file": FileObservation,
+            "wiki": WikiObservation,
+            "fork": ForkObservation,
+            "branch": BranchObservation,
+            "tag": TagObservation,
+            "release": ReleaseObservation,
+            "snapshot": SnapshotObservation,
+            "ioc": IOC,
+            "article": ArticleObservation,
+        }
+        obs_cls = obs_map.get(data["observation_type"])
+        if obs_cls:
+            return obs_cls.model_validate(data)
+        raise ValueError(f"Unknown observation_type: {data['observation_type']}")
+
+    raise ValueError("Data must contain 'event_type' or 'observation_type' field")
+
+
+# Type alias for return type
+from ._schema import AnyEvidence, AnyEvent, AnyObservation
+
 __all__ = [
-    # Schema - Enums
-    "EvidenceSource",
-    "EventType",
-    "RefType",
-    "PRAction",
-    "IssueAction",
-    "WorkflowConclusion",
-    "IOCType",
-    # Schema - Common
-    "GitHubActor",
-    "GitHubRepository",
-    "VerificationInfo",
-    # Schema - Events
-    "Event",
-    "CommitInPush",
-    "PushEvent",
-    "PullRequestEvent",
-    "IssueEvent",
-    "IssueCommentEvent",
-    "CreateEvent",
-    "DeleteEvent",
-    "ForkEvent",
-    "WorkflowRunEvent",
-    "ReleaseEvent",
-    "WatchEvent",
-    "MemberEvent",
-    "PublicEvent",
-    "AnyEvent",
-    # Schema - Observations
-    "Observation",
-    "CommitAuthor",
-    "FileChange",
-    "CommitObservation",
-    "IssueObservation",
-    "FileObservation",
-    "WikiObservation",
-    "ForkObservation",
-    "BranchObservation",
-    "TagObservation",
-    "ReleaseObservation",
-    "WaybackSnapshot",
-    "SnapshotObservation",
-    "IOC",
-    "AnyObservation",
-    "AnyEvidence",
-    # Creation - Query Models
+    # Factory - THE ONLY entry point for creating evidence
+    "EvidenceFactory",
+    # Query Models (for type hints)
     "RepositoryQuery",
     "CommitQuery",
     "IssueQuery",
@@ -164,41 +163,18 @@ __all__ = [
     "WikiQuery",
     "WaybackQuery",
     "GHArchiveQuery",
-    # Creation - Source Clients
-    "GitHubClient",
-    "WaybackClient",
-    "GHArchiveClient",
-    "GitClient",
-    # Creation - Factory
-    "EvidenceFactory",
-    # Creation - Event Creators
-    "create_push_event_from_gharchive",
-    "create_pull_request_event_from_gharchive",
-    "create_issue_event_from_gharchive",
-    "create_issue_comment_event_from_gharchive",
-    "create_create_event_from_gharchive",
-    "create_delete_event_from_gharchive",
-    "create_fork_event_from_gharchive",
-    "create_workflow_run_event_from_gharchive",
-    "create_release_event_from_gharchive",
-    "create_watch_event_from_gharchive",
-    "create_member_event_from_gharchive",
-    "create_public_event_from_gharchive",
-    "create_event_from_gharchive",
-    # Creation - Observation Creators (GH Archive - deleted content recovery)
-    "create_issue_observation_from_gharchive",
-    "create_pr_observation_from_gharchive",
-    "create_commit_observation_from_gharchive",
-    "create_force_push_observation_from_gharchive",
-    # Creation - Observation Creators (GitHub/Wayback)
-    "create_commit_observation",
-    "create_commit_observation_from_git",
-    "create_issue_observation",
-    "create_file_observation",
-    "create_branch_observation",
-    "create_tag_observation",
-    "create_release_observation",
-    "create_fork_observations",
-    "create_snapshot_observation",
-    "create_ioc",
+    # Enums
+    "EvidenceSource",
+    "EventType",
+    "RefType",
+    "PRAction",
+    "IssueAction",
+    "WorkflowConclusion",
+    "IOCType",
+    # Deserialization (for loading previously verified evidence)
+    "load_evidence_from_json",
+    # Type aliases
+    "AnyEvidence",
+    "AnyEvent",
+    "AnyObservation",
 ]
