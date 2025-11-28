@@ -36,7 +36,6 @@ tags:
 - Cannot `git clone` from archived content
 - Cannot reconstruct full commit history
 - Recovery success depends on whether specific URLs were crawled
-- ~58% of repository homepages show no damage; deeper content often missing
 
 **What CAN Be Recovered**:
 - README files and repository descriptions
@@ -45,20 +44,12 @@ tags:
 - Wiki pages (especially wiki home)
 - Release notes and descriptions
 - Repository metadata (stars, language, license visible on homepage)
+- Commit SHAs from archived commit list pages (use with **github-commit-recovery** skill to access actual content)
 
 **What CANNOT Be Recovered**:
 - Private repository content (never crawled)
 - Complete git history or repository clone
-- Non-default branches (rarely crawled)
-- GitHub Actions logs (dynamic content)
 - Content behind authentication
-
-**Recovery Success Rates** (based on 2025 research):
-- Repository homepages: ~58% undamaged
-- Issue discussions: High (explicitly prioritized by Archive Team)
-- PR conversations: High (Files Changed tab problematic)
-- Deep directory structures: Low
-- Individual code files: Moderate (root-level files more likely)
 
 ## Quick Start
 
@@ -252,21 +243,6 @@ https://web.archive.org/web/{TIMESTAMP}/https://github.com/owner/repo/wiki
 https://web.archive.org/web/{TIMESTAMP}/https://github.com/owner/repo/wiki/Page-Name
 ```
 
-### Bulk URL Discovery with Command-Line Tools
-
-**Using gau (getallurls)**:
-```bash
-# Install: go install github.com/lc/gau/v2/cmd/gau@latest
-gau github.com/owner/repo --providers wayback
-```
-
-**Using waymore** (comprehensive with response downloading):
-```bash
-# Install: pip install waymore
-waymore -i github.com/owner/repo -mode U  # URLs only
-waymore -i github.com/owner/repo -mode R  # Download responses
-```
-
 ## Python Implementation
 
 ```python
@@ -388,31 +364,6 @@ for fork in forks:
     print(f"Potential fork: github.com/{fork}/deleted-repo")
 ```
 
-## Security Research Applications
-
-### Secret Scanning in Archived Content
-
-**Tool: WayHunter** - Scans archived URLs for exposed secrets using entropy analysis:
-```bash
-# Find potentially exposed config files
-waymore -i github.com/target-org -mode U | grep -E "\.(env|config|json|yml)$" > urls.txt
-# Scan archived responses for secrets
-```
-
-**Tool: TheTimeMachine** - Detects backup files and sensitive endpoints:
-```bash
-# Search for backup files that may contain credentials
-waybackurls github.com/org/repo | grep -E "\.(bak|backup|sql|zip|tar)$"
-```
-
-### Historical Vulnerability Research
-
-Use archived snapshots to:
-- Find when vulnerable code was introduced
-- Recover deleted security advisories
-- Access historical dependency versions (package.json, requirements.txt)
-- Document vulnerability timelines for responsible disclosure
-
 ## Limitations and Considerations
 
 ### Technical Limitations
@@ -420,7 +371,6 @@ Use archived snapshots to:
 - **JavaScript-rendered content**: GitHub's modern interface uses AJAX; archived pages may have broken file trees, blame views, and navigation
 - **Raw file downloads**: `raw.githubusercontent.com` URLs are rarely archived
 - **Binary assets**: Release binaries and attachments typically fail to archive
-- **Incomplete coverage**: ~10% of sampled repositories have no captures; 31% show some damage
 
 ### Rate Limiting
 
@@ -429,13 +379,6 @@ Archive.org has undocumented rate limits:
 - Implement exponential backoff if you receive 429 responses
 - Use `collapse` parameters to reduce result count
 - Cache results locally for repeated analysis
-
-### Ethical Considerations
-
-- Wayback Machine content may include personal information
-- Respect the intent of content deletion where appropriate
-- Use recovered data only for legitimate security research
-- Follow responsible disclosure for any vulnerabilities found
 
 ## Troubleshooting
 
@@ -458,16 +401,6 @@ Archive.org has undocumented rate limits:
 - Implement delays between requests (1-2 seconds)
 - Use `collapse=timestamp:8` to reduce duplicates
 - Download during off-peak hours
-
-## Tools Reference
-
-| Tool | Purpose | Install |
-|------|---------|---------|
-| waybackpy | Python library for all Wayback APIs | `pip install waybackpy` |
-| waybackpack | Download all snapshots of a URL | `pip install waybackpack` |
-| wayback-machine-downloader | Download entire archived sites | `gem install wayback_machine_downloader` |
-| gau | Fetch all archived URLs for domain | `go install github.com/lc/gau/v2/cmd/gau@latest` |
-| waymore | Comprehensive URL collection + response download | `pip install waymore` |
 
 ## Learn More
 
