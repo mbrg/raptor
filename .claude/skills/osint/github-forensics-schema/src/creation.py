@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 from .schema import (
     AnyEvent,
     AnyObservation,
+    ArticleObservation,
     BranchObservation,
     CommitAuthor,
     CommitInPush,
@@ -548,15 +549,14 @@ def _parse_datetime(dt_str: str | None) -> datetime | None:
     raise ValueError(f"Unable to parse datetime: {dt_str}")
 
 
-def _make_github_repo(owner: str, name: str, repo_id: int | None = None) -> GitHubRepository:
+def _make_github_repo(owner: str, name: str) -> GitHubRepository:
     """Create GitHubRepository from components."""
-    return GitHubRepository(owner=owner, name=name, full_name=f"{owner}/{name}", id=repo_id)
+    return GitHubRepository(owner=owner, name=name, full_name=f"{owner}/{name}")
 
 
 def _make_github_actor(login: str, actor_id: int | None = None) -> GitHubActor:
     """Create GitHubActor from components."""
-    is_bot = login.endswith("[bot]") or login.endswith("-bot")
-    return GitHubActor(login=login, id=actor_id, is_bot=is_bot)
+    return GitHubActor(login=login, id=actor_id)
 
 
 # =============================================================================
@@ -590,7 +590,7 @@ def create_push_event_from_gharchive(row: dict[str, Any]) -> PushEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Pushed {size} commit(s) to {payload.get('ref', 'unknown')}",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table=f"githubarchive.day.*",
@@ -622,7 +622,7 @@ def create_pull_request_event_from_gharchive(row: dict[str, Any]) -> PullRequest
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"PR #{pr.get('number')} {action_str}",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -656,7 +656,7 @@ def create_issue_event_from_gharchive(row: dict[str, Any]) -> IssueEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Issue #{issue.get('number')} {action_str}",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -680,7 +680,7 @@ def create_issue_comment_event_from_gharchive(row: dict[str, Any]) -> IssueComme
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Comment on issue #{issue.get('number')}",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -708,7 +708,7 @@ def create_create_event_from_gharchive(row: dict[str, Any]) -> CreateEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Created {ref_type_str} '{ref_name}'",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -734,7 +734,7 @@ def create_delete_event_from_gharchive(row: dict[str, Any]) -> DeleteEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Deleted {ref_type_str} '{ref_name}'",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -755,7 +755,7 @@ def create_fork_event_from_gharchive(row: dict[str, Any]) -> ForkEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Forked to {forkee.get('full_name', '')}",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -783,7 +783,7 @@ def create_workflow_run_event_from_gharchive(row: dict[str, Any]) -> WorkflowRun
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Workflow '{workflow_run.get('name', '')}' {payload.get('action', '')}",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -806,7 +806,7 @@ def create_release_event_from_gharchive(row: dict[str, Any]) -> ReleaseEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Release '{release.get('tag_name', '')}' {payload.get('action', '')}",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -827,7 +827,7 @@ def create_watch_event_from_gharchive(row: dict[str, Any]) -> WatchEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what="Starred repository",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -846,7 +846,7 @@ def create_member_event_from_gharchive(row: dict[str, Any]) -> MemberEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what=f"Member {member.get('login', '')} {payload.get('action', '')}",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -865,7 +865,7 @@ def create_public_event_from_gharchive(row: dict[str, Any]) -> PublicEvent:
         when=_parse_datetime(row["created_at"]),
         who=_make_github_actor(row["actor_login"], row.get("actor_id")),
         what="Made repository public",
-        repository=_make_github_repo(owner, name, row.get("repo_id")),
+        repository=_make_github_repo(owner, name),
         verification=VerificationInfo(
             source=EvidenceSource.GHARCHIVE,
             bigquery_table="githubarchive.day.*",
@@ -945,7 +945,7 @@ def create_issue_observation_from_gharchive(
                 observed_when=_parse_datetime(row["created_at"]),
                 observed_by=EvidenceSource.GHARCHIVE,
                 observed_what=f"Issue #{issue_number} recovered from GH Archive",
-                repository=_make_github_repo(owner, name, row.get("repo_id")),
+                repository=_make_github_repo(owner, name),
                 verification=VerificationInfo(
                     source=EvidenceSource.GHARCHIVE,
                     bigquery_table=f"githubarchive.day.{date}",
@@ -1004,7 +1004,7 @@ def create_pr_observation_from_gharchive(
                 observed_when=_parse_datetime(row["created_at"]),
                 observed_by=EvidenceSource.GHARCHIVE,
                 observed_what=f"PR #{pr_number} recovered from GH Archive",
-                repository=_make_github_repo(owner, name, row.get("repo_id")),
+                repository=_make_github_repo(owner, name),
                 verification=VerificationInfo(
                     source=EvidenceSource.GHARCHIVE,
                     bigquery_table=f"githubarchive.day.{date}",
@@ -1062,7 +1062,7 @@ def create_commit_observation_from_gharchive(
                     observed_when=_parse_datetime(row["created_at"]),
                     observed_by=EvidenceSource.GHARCHIVE,
                     observed_what=f"Commit {commit['sha'][:8]} recovered from GH Archive",
-                    repository=_make_github_repo(owner, name, row.get("repo_id")),
+                    repository=_make_github_repo(owner, name),
                     verification=VerificationInfo(
                         source=EvidenceSource.GHARCHIVE,
                         bigquery_table=f"githubarchive.day.{date}",
@@ -1129,7 +1129,7 @@ def create_force_push_observation_from_gharchive(
                 observed_when=_parse_datetime(row["created_at"]),
                 observed_by=EvidenceSource.GHARCHIVE,
                 observed_what=f"Force push detected, before SHA: {before_sha[:8]}",
-                repository=_make_github_repo(owner, name, row.get("repo_id")),
+                repository=_make_github_repo(owner, name),
                 verification=VerificationInfo(
                     source=EvidenceSource.GHARCHIVE,
                     bigquery_table=f"githubarchive.day.{date}",
@@ -1532,10 +1532,49 @@ def create_ioc(
         ),
         ioc_type=ioc_type,
         value=value,
-        confidence="confirmed",
         first_seen=now,
         last_seen=now,
         extracted_from=extracted_from,
+    )
+
+
+def create_article_observation(
+    url: str,
+    title: str,
+    author: str | None = None,
+    published_date: datetime | None = None,
+    source_name: str | None = None,
+    summary: str | None = None,
+    observed_when: datetime | None = None,
+) -> ArticleObservation:
+    """Create an ArticleObservation for a blog post or security report.
+
+    Args:
+        url: URL of the article
+        title: Title of the article
+        author: Author name (optional)
+        published_date: When the article was published (optional)
+        source_name: Name of the publication (e.g., "404media", "mbgsec.com")
+        summary: Brief summary of the article
+        observed_when: When we observed/documented this article
+    """
+    now = observed_when or datetime.now(timezone.utc)
+
+    return ArticleObservation(
+        evidence_id=_generate_evidence_id("article", url),
+        observed_when=now,
+        observed_by=EvidenceSource.SECURITY_VENDOR,
+        observed_what=f"Article: {title[:50]}{'...' if len(title) > 50 else ''}",
+        verification=VerificationInfo(
+            source=EvidenceSource.SECURITY_VENDOR,
+            url=HttpUrl(url),
+        ),
+        url=HttpUrl(url),
+        title=title,
+        author=author,
+        published_date=published_date,
+        source_name=source_name,
+        summary=summary,
     )
 
 
@@ -1693,6 +1732,25 @@ class EvidenceFactory:
             value=value,
             source_url=HttpUrl(source_url),
             extracted_from=extracted_from,
+        )
+
+    def article(
+        self,
+        url: str,
+        title: str,
+        author: str | None = None,
+        published_date: datetime | None = None,
+        source_name: str | None = None,
+        summary: str | None = None,
+    ) -> ArticleObservation:
+        """Create an ArticleObservation for a blog post or security report."""
+        return create_article_observation(
+            url=url,
+            title=title,
+            author=author,
+            published_date=published_date,
+            source_name=source_name,
+            summary=summary,
         )
 
     # GH Archive recovery methods - require exact timestamp

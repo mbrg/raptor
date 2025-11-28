@@ -108,7 +108,6 @@ class GitHubActor(BaseModel):
 
     login: str
     id: int | None = None
-    is_bot: bool = False
 
 
 class GitHubRepository(BaseModel):
@@ -117,7 +116,6 @@ class GitHubRepository(BaseModel):
     owner: str
     name: str
     full_name: str
-    id: int | None = None
 
 
 class VerificationInfo(BaseModel):
@@ -438,10 +436,27 @@ class IOC(Observation):
     observation_type: Literal["ioc"] = "ioc"
     ioc_type: IOCType
     value: str
-    confidence: Literal["confirmed", "high", "medium", "low"] = "medium"
     first_seen: datetime | None = None
     last_seen: datetime | None = None
     extracted_from: str | None = None  # Evidence ID
+
+
+# -----------------------------------------------------------------------------
+# Article - External documentation (blog posts, security reports)
+# -----------------------------------------------------------------------------
+
+
+class ArticleObservation(Observation):
+    """External article documenting an incident (blog post, security report, news article)."""
+
+    observation_type: Literal["article"] = "article"
+    url: HttpUrl
+    title: str
+    author: str | None = None
+    published_date: datetime | None = None
+    source_name: str | None = None  # e.g., "404media", "mbgsec.com"
+    summary: str | None = None
+    evidence_ids: list[str] = Field(default_factory=list)  # Evidence items documented in article
 
 
 AnyObservation = (
@@ -455,6 +470,7 @@ AnyObservation = (
     | ReleaseObservation
     | SnapshotObservation
     | IOC
+    | ArticleObservation
 )
 
 
