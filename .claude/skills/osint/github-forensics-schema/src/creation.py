@@ -1465,69 +1465,25 @@ def create_snapshot_observation(
 def create_ioc(
     ioc_type: IOCType,
     value: str,
-    source_url: HttpUrl | None = None,
+    source_url: HttpUrl,
     confidence: str = "medium",
     extracted_from: str | None = None,
-    github_client: GitHubClient | None = None,
-    wayback_client: WaybackClient | None = None,
 ) -> IOC:
-    """Create an IOC with optional verification and enrichment.
+    """Create an IOC from a security vendor report.
 
-    For commit_sha: verifies existence via GitHub API
-    For url: checks for Wayback snapshots
-    For repository: verifies repo exists
+    IOCs are extracted from vendor blogs/reports - source_url is required.
+    Use enrich_ioc() to verify if artifacts still exist on GitHub/Wayback.
     """
     now = datetime.now(timezone.utc)
-    verified = False
-    verification_url = source_url
-    observed_by = EvidenceSource.SECURITY_VENDOR
-
-    # Enrich based on IOC type
-    if ioc_type == IOCType.COMMIT_SHA and github_client and "/" in (extracted_from or ""):
-        # Try to verify commit exists
-        try:
-            repo = extracted_from.split("#")[0] if extracted_from else ""
-            if "/" in repo:
-                owner, name = repo.split("/", 1)
-                data = github_client.get_commit(owner, name, value)
-                verified = True
-                verification_url = HttpUrl(data["html_url"])
-                observed_by = EvidenceSource.GITHUB
-                confidence = "confirmed"
-        except Exception:
-            pass  # Keep original confidence
-
-    elif ioc_type == IOCType.URL and wayback_client:
-        # Check if URL is archived
-        try:
-            results = wayback_client.search_cdx(value, limit=1)
-            if results:
-                verified = True
-                observed_by = EvidenceSource.WAYBACK
-        except Exception:
-            pass
-
-    elif ioc_type == IOCType.REPOSITORY and github_client:
-        # Verify repo exists
-        try:
-            if "/" in value:
-                owner, name = value.split("/", 1)
-                data = github_client.get_repo(owner, name)
-                verified = True
-                verification_url = HttpUrl(data["html_url"])
-                observed_by = EvidenceSource.GITHUB
-                confidence = "confirmed"
-        except Exception:
-            pass
 
     return IOC(
         evidence_id=_generate_evidence_id("ioc", ioc_type.value, value),
         observed_when=now,
-        observed_by=observed_by,
-        observed_what=f"IOC {ioc_type.value}: {value[:50]}{'...' if len(value) > 50 else ''}" + (" [verified]" if verified else ""),
+        observed_by=EvidenceSource.SECURITY_VENDOR,
+        observed_what=f"IOC {ioc_type.value}: {value[:50]}{'...' if len(value) > 50 else ''}",
         verification=VerificationInfo(
-            source=observed_by,
-            url=verification_url,
+            source=EvidenceSource.SECURITY_VENDOR,
+            url=source_url,
         ),
         ioc_type=ioc_type,
         value=value,
@@ -1536,6 +1492,51 @@ def create_ioc(
         last_seen=now,
         extracted_from=extracted_from,
     )
+
+
+def verify_ioc_at_source(ioc: IOC) -> IOC:
+    """Verify IOC exists in the source vendor blog/report.
+
+    Fetches the source_url and checks if the IOC value appears in content.
+    Returns IOC with updated confidence if verified.
+    """
+    import requests
+
+    if not ioc.verification.url:
+        return ioc
+
+    try:
+        resp = requests.get(str(ioc.verification.url), timeout=30)
+        resp.raise_for_status()
+        content = resp.text.lower()
+
+        # Check if IOC value appears in the page
+        value_to_find = ioc.value.lower()
+        verified = value_to_find in content
+
+        if not verified:
+            return ioc
+
+        return IOC(
+            evidence_id=ioc.evidence_id,
+            original_when=ioc.original_when,
+            original_who=ioc.original_who,
+            original_what=ioc.original_what,
+            observed_when=ioc.observed_when,
+            observed_by=ioc.observed_by,
+            observed_what=f"{ioc.observed_what} [verified in source]",
+            repository=ioc.repository,
+            verification=ioc.verification,
+            is_deleted=ioc.is_deleted,
+            ioc_type=ioc.ioc_type,
+            value=ioc.value,
+            confidence="confirmed",
+            first_seen=ioc.first_seen,
+            last_seen=ioc.last_seen,
+            extracted_from=ioc.extracted_from,
+        )
+    except Exception:
+        return ioc
 
 
 # =============================================================================
@@ -1678,22 +1679,24 @@ class EvidenceFactory:
         self,
         ioc_type: IOCType | str,
         value: str,
-        source_url: str | None = None,
+        source_url: str,
         confidence: str = "medium",
         extracted_from: str | None = None,
     ) -> IOC:
-        """Create an IOC with verification and enrichment."""
+        """Create an IOC from a security vendor report."""
         if isinstance(ioc_type, str):
             ioc_type = IOCType(ioc_type)
         return create_ioc(
             ioc_type=ioc_type,
             value=value,
-            source_url=HttpUrl(source_url) if source_url else None,
+            source_url=HttpUrl(source_url),
             confidence=confidence,
             extracted_from=extracted_from,
-            github_client=self.github,
-            wayback_client=self.wayback,
         )
+
+    def verify_ioc(self, ioc: IOC) -> IOC:
+        """Verify IOC exists in the source vendor blog/report."""
+        return verify_ioc_at_source(ioc)
 
     # GH Archive recovery methods
 
