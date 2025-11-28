@@ -1,13 +1,11 @@
 """
 GitHub Forensics Verifiable Evidence Schema
 
-Three evidence types:
-1. Event   - Something happened (when, who, what)
-             Sources: GH Archive, git log
-2. Content - Something we found (when_found, who?, what, where_found, found_by)
-             Sources: GH Archive, GitHub API, Wayback
-3. IOC     - Indicator of Compromise (same as content)
-             Sources: Security blogs, extracted from content
+Base pattern: when, who, what
+
+- Event: when it happened, who did it, what they did
+- Observation: when found, who created it (optional), what we found
+- IOC: subtype of Observation
 """
 
 from .schema import (
@@ -23,7 +21,9 @@ from .schema import (
     GitHubActor,
     GitHubRepository,
     VerificationInfo,
-    # Events (when, who, what)
+    # Base
+    Evidence,
+    # Events
     Event,
     CommitInPush,
     PushEvent,
@@ -39,21 +39,20 @@ from .schema import (
     MemberEvent,
     PublicEvent,
     AnyEvent,
-    # Content (when_found, who?, what, where_found, found_by)
-    Content,
+    # Observations
+    Observation,
     CommitAuthor,
     CommitFileChange,
-    CommitContent,
+    CommitObservation,
     ForcePushedCommitRef,
     WaybackSnapshot,
-    WaybackContent,
+    WaybackObservation,
     RecoveredIssue,
     RecoveredFile,
     RecoveredWiki,
     RecoveredForks,
-    AnyContent,
-    # IOC
     IOC,
+    AnyObservation,
     # Investigation
     AnyEvidence,
     TimelineEntry,
@@ -62,7 +61,6 @@ from .schema import (
 )
 
 __all__ = [
-    # Enums
     "EvidenceSource",
     "EventType",
     "RefType",
@@ -70,11 +68,10 @@ __all__ = [
     "IssueAction",
     "WorkflowConclusion",
     "IOCType",
-    # Common
     "GitHubActor",
     "GitHubRepository",
     "VerificationInfo",
-    # Events
+    "Evidence",
     "Event",
     "CommitInPush",
     "PushEvent",
@@ -90,22 +87,19 @@ __all__ = [
     "MemberEvent",
     "PublicEvent",
     "AnyEvent",
-    # Content
-    "Content",
+    "Observation",
     "CommitAuthor",
     "CommitFileChange",
-    "CommitContent",
+    "CommitObservation",
     "ForcePushedCommitRef",
     "WaybackSnapshot",
-    "WaybackContent",
+    "WaybackObservation",
     "RecoveredIssue",
     "RecoveredFile",
     "RecoveredWiki",
     "RecoveredForks",
-    "AnyContent",
-    # IOC
     "IOC",
-    # Investigation
+    "AnyObservation",
     "AnyEvidence",
     "TimelineEntry",
     "ActorProfile",
