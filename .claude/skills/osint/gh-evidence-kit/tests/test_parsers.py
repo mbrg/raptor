@@ -8,12 +8,7 @@ Note: Helper function tests (generate_evidence_id, parse_datetime, etc.)
 are in test_helpers.py to avoid duplication.
 """
 
-import sys
-from pathlib import Path
-
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src._parsers import (
     _RowContext,

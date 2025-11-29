@@ -3,10 +3,10 @@ GitHub Forensics Verifiable Evidence Schema
 
 Two evidence types:
 
-1. Event - Something that happened (from GH Archive, git)
+1. Event - Something that happened (from GH Archive, local git)
    when, who, what
 
-2. Observation - Something we observed (from GitHub, Wayback, security vendors)
+2. Observation - Something we observed (from GitHub, Wayback, local git, security vendors)
    Original: when, who, what (if known)
    Observer: when observed, who observed, what they found
 
@@ -143,6 +143,7 @@ class VerificationInfo(BaseModel):
     url: HttpUrl | None = None
     bigquery_table: str | None = None
     query: str | None = None
+    repo_path: str | None = None  # For local git verification
 
 
 # =============================================================================

@@ -23,7 +23,7 @@ def verify_event(event: "Event") -> "VerificationResult":
     if source == EvidenceSource.GHARCHIVE:
         return _verify_gharchive_event(event)
     if source == EvidenceSource.GIT:
-        return True, ["Local git verification not supported"]
+        return _verify_git_event(event)
     return False, [f"Unknown verification source for event: {source}"]
 
 
@@ -33,10 +33,10 @@ def verify_observation(observation: "Observation") -> "VerificationResult":
 
     verifiers: dict[EvidenceSource, Callable] = {
         EvidenceSource.GITHUB: _verify_github_observation,
+        EvidenceSource.GIT: _verify_git_observation,
         EvidenceSource.GHARCHIVE: _verify_gharchive_observation,
-        EvidenceSource.WAYBACK: _verify_url_accessible,
+        EvidenceSource.WAYBACK: _verify_wayback_observation,
         EvidenceSource.SECURITY_VENDOR: _verify_security_vendor,
-        EvidenceSource.GIT: lambda o: (True, ["Local git verification not supported"]),
     }
 
     verifier = verifiers.get(source)
@@ -331,3 +331,103 @@ def _verify_gharchive_observation(obs: "Observation") -> "VerificationResult":
         return True, ["GH Archive verification skipped - no credentials"]
 
     return True, []
+
+
+# =============================================================================
+# GIT VERIFICATION
+# =============================================================================
+
+
+def _get_git_client(repo_path: str = ".") -> "GitClient":
+    """Create Git client."""
+    from ._clients import GitClient
+    return GitClient(repo_path=repo_path)
+
+
+def _verify_git_event(event: "Event") -> "VerificationResult":
+    """Verify event against local git repository."""
+    repo_path = getattr(event.verification, "repo_path", None) or "."
+
+    try:
+        client = _get_git_client(repo_path)
+    except ValueError as e:
+        return False, [f"Cannot access git repository: {e}"]
+
+    # For push events, verify the commits exist
+    if hasattr(event, "commits") and event.commits:
+        for commit_info in event.commits:
+            sha = commit_info.sha if hasattr(commit_info, "sha") else commit_info.get("sha")
+            if sha:
+                try:
+                    client.get_commit(sha)
+                except Exception:
+                    return False, [f"Commit {sha[:8]} not found in local repository"]
+
+    return True, []
+
+
+def _verify_git_observation(obs: "Observation") -> "VerificationResult":
+    """Verify observation against local git repository."""
+    repo_path = getattr(obs.verification, "repo_path", None) or "."
+
+    try:
+        client = _get_git_client(repo_path)
+    except ValueError as e:
+        return False, [f"Cannot access git repository: {e}"]
+
+    obs_type = getattr(obs, "observation_type", None)
+
+    if obs_type == "commit":
+        sha = getattr(obs, "sha", None)
+        if not sha:
+            return False, ["No SHA specified"]
+        try:
+            data = client.get_commit(sha)
+            errors = []
+
+            # Verify message if present
+            if hasattr(obs, "message") and obs.message:
+                if data["message"] != obs.message:
+                    errors.append("Commit message mismatch")
+
+            # Verify author if present
+            if hasattr(obs, "author") and obs.author:
+                if data["author"]["name"] != obs.author.name:
+                    errors.append(f"Author mismatch: expected {obs.author.name}")
+
+            return len(errors) == 0, errors
+        except Exception as e:
+            return False, [f"Failed to verify commit: {e}"]
+
+    # For other types, just verify repo is accessible
+    return True, []
+
+
+# =============================================================================
+# WAYBACK VERIFICATION
+# =============================================================================
+
+
+def _verify_wayback_observation(obs: "Observation") -> "VerificationResult":
+    """Verify observation against Wayback Machine."""
+    import requests
+
+    url = obs.verification.url
+    if not url:
+        return True, []
+
+    try:
+        # First check if URL is accessible
+        resp = requests.get(str(url), timeout=60)
+        resp.raise_for_status()
+
+        # For snapshot observations, verify content hash if present
+        if hasattr(obs, "content_hash") and obs.content_hash:
+            import hashlib
+            actual_hash = hashlib.sha256(resp.text.encode()).hexdigest()
+            if obs.content_hash != actual_hash:
+                return False, ["Content hash mismatch"]
+
+        return True, []
+    except requests.RequestException as e:
+        return False, [f"Failed to access Wayback URL: {e}"]

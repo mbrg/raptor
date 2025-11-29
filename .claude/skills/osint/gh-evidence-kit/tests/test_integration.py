@@ -4,6 +4,8 @@ Integration tests: Verify EvidenceFactory works with real APIs.
 
 These tests hit actual external services:
 - GitHub REST API (60 req/hr unauthenticated)
+- Wayback Machine CDX and Archive APIs
+- Local Git repositories
 - (Optional) GH Archive BigQuery
 
 Run with: pytest tests/test_integration.py -v -m integration
@@ -28,12 +30,10 @@ For .env file usage:
     Then use python-dotenv or similar to load it before running tests.
 """
 
-import sys
+import subprocess
 from pathlib import Path
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src import EvidenceFactory, EvidenceSource, IOCType
 
@@ -479,6 +479,204 @@ class TestArticleIntegration:
         assert article.title == "Constructing a Timeline for Amazon Q Prompt Infection"
         assert article.verification.source == EvidenceSource.SECURITY_VENDOR
         assert str(article.verification.url) == "https://mbgsec.com/posts/2025-07-24-constructing-a-timeline-for-amazon-q-prompt-infection/"
+
+
+# =============================================================================
+# WAYBACK MACHINE INTEGRATION TESTS
+# =============================================================================
+
+
+class TestWaybackIntegration:
+    """Integration tests against real Wayback Machine API."""
+
+    @pytest.fixture
+    def factory(self):
+        return EvidenceFactory()
+
+    def test_search_wayback_for_github_page(self, factory):
+        """
+        Search Wayback Machine for archived GitHub page.
+
+        Uses python.org - a stable page with many archives.
+        """
+        import requests
+
+        # Pre-flight check
+        try:
+            resp = requests.get("https://web.archive.org/cdx/search/cdx?url=python.org&limit=1", timeout=10)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            pytest.skip(f"Wayback Machine unavailable: {e}")
+
+        obs = factory.wayback_snapshots(
+            url="https://python.org",
+            limit=10,
+        )
+
+        assert obs is not None
+        assert obs.total_snapshots > 0
+        assert obs.verification.source == EvidenceSource.WAYBACK
+        assert len(obs.snapshots) <= 10
+
+    def test_wayback_client_fetch_snapshot(self, factory):
+        """
+        Fetch actual archived content from Wayback Machine.
+
+        Uses a known archive of python.org from 2020.
+        """
+        import requests
+
+        try:
+            client = factory.wayback
+            snapshot = client.get_snapshot(
+                url="https://www.python.org/",
+                timestamp="20200101120000",  # Jan 1, 2020 12:00:00
+            )
+        except requests.RequestException as e:
+            pytest.skip(f"Wayback Machine unavailable: {e}")
+
+        assert "content" in snapshot
+        assert "Python" in snapshot["content"]
+        assert snapshot["url"] == "https://www.python.org/"
+
+    def test_wayback_check_availability(self, factory):
+        """
+        Check if a URL is archived in Wayback Machine.
+        """
+        import requests
+
+        try:
+            client = factory.wayback
+            result = client.check_availability("https://python.org")
+        except requests.RequestException as e:
+            pytest.skip(f"Wayback Machine unavailable: {e}")
+
+        # python.org should definitely be archived
+        assert result is not None
+        assert "available" in result or "url" in result
+
+
+# =============================================================================
+# LOCAL GIT INTEGRATION TESTS
+# =============================================================================
+
+
+@pytest.fixture
+def real_git_repo(tmp_path):
+    """Create a real git repository for integration testing."""
+    env = {"GIT_CONFIG_GLOBAL": "/dev/null", "HOME": str(tmp_path)}
+
+    subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "config", "user.email", "integration@test.com"], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "config", "user.name", "Integration Tester"], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=tmp_path, capture_output=True, check=True, env=env)
+
+    # Create initial commit
+    (tmp_path / "README.md").write_text("# Test Repository\n\nThis is a test.")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "commit", "-m", "Initial commit: Add README"], cwd=tmp_path, capture_output=True, check=True, env=env)
+
+    # Create second commit with changes
+    (tmp_path / "main.py").write_text("print('Hello, World!')")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "commit", "-m", "feat: Add main.py with hello world"], cwd=tmp_path, capture_output=True, check=True, env=env)
+
+    # Create third commit
+    (tmp_path / "main.py").write_text("print('Hello, Integration Test!')")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "commit", "-m", "fix: Update greeting message"], cwd=tmp_path, capture_output=True, check=True, env=env)
+
+    return tmp_path
+
+
+class TestLocalGitIntegration:
+    """Integration tests for local git repository evidence collection."""
+
+    def test_git_commit_creates_observation(self, real_git_repo):
+        """
+        Factory can create CommitObservation from local git commit.
+        """
+        factory = EvidenceFactory()
+
+        # Get HEAD commit SHA
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=real_git_repo, capture_output=True, text=True, check=True
+        )
+        head_sha = result.stdout.strip()
+
+        obs = factory.git_commit(str(real_git_repo), head_sha)
+
+        assert obs is not None
+        assert obs.sha == head_sha
+        assert obs.verification.source == EvidenceSource.GIT
+        assert obs.verification.repo_path == str(real_git_repo)
+        assert "Update greeting message" in obs.message
+
+    def test_git_history_returns_multiple_commits(self, real_git_repo):
+        """
+        Factory can retrieve commit history from local git.
+        """
+        factory = EvidenceFactory()
+
+        history = factory.git_history(str(real_git_repo), limit=10)
+
+        assert len(history) == 3
+        assert history[0].message == "fix: Update greeting message"
+        assert history[1].message == "feat: Add main.py with hello world"
+        assert history[2].message == "Initial commit: Add README"
+
+        # All should have GIT as verification source
+        for commit in history:
+            assert commit.verification.source == EvidenceSource.GIT
+
+    def test_git_blame_returns_line_attribution(self, real_git_repo):
+        """
+        Factory can get blame information for a file.
+        """
+        factory = EvidenceFactory()
+
+        blame = factory.git_blame(str(real_git_repo), "main.py")
+
+        assert len(blame) >= 1
+        # The file has one line, so we should have at least one blame entry
+        assert blame[0]["author"] == "Integration Tester"
+        assert "Hello" in blame[0]["content"]
+
+    def test_git_commit_with_files(self, real_git_repo):
+        """
+        Git commit observation includes changed files.
+        """
+        factory = EvidenceFactory()
+
+        # Get the commit that added main.py
+        history = factory.git_history(str(real_git_repo), limit=10)
+        add_main_py_commit = history[1]  # "feat: Add main.py"
+
+        # Now get full commit details
+        obs = factory.git_commit(str(real_git_repo), add_main_py_commit.sha)
+
+        assert len(obs.files) > 0
+        filenames = [f.filename for f in obs.files]
+        assert "main.py" in filenames
+
+    def test_git_verification_works(self, real_git_repo):
+        """
+        Commit observations from local git can be verified.
+        """
+        factory = EvidenceFactory()
+
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=real_git_repo, capture_output=True, text=True, check=True
+        )
+        head_sha = result.stdout.strip()
+
+        obs = factory.git_commit(str(real_git_repo), head_sha)
+
+        # Verification should pass (commit exists in local repo)
+        is_valid, errors = obs.verify()
+        assert is_valid, f"Verification failed: {errors}"
 
 
 if __name__ == "__main__":

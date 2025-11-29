@@ -43,7 +43,7 @@ from ._schema import (
     VerificationInfo,
     WaybackSnapshot,
 )
-from ._clients import GHArchiveClient, GitHubClient, WaybackClient
+from ._clients import GHArchiveClient, GitClient, GitHubClient, WaybackClient
 from ._parsers import parse_gharchive_event
 
 
@@ -54,6 +54,7 @@ class EvidenceFactory:
     - GitHub API: Public repos, commits, issues, PRs (60 req/hr)
     - Wayback Machine: Archived web pages
     - GH Archive: BigQuery (requires GCP project, free tier: 1TB/month)
+    - Local Git: Evidence from cloned repositories
 
     Usage:
         factory = EvidenceFactory()
@@ -64,6 +65,10 @@ class EvidenceFactory:
 
         # From GH Archive
         events = factory.events_from_gharchive("202507132037", repo="aws/aws-toolkit-vscode")
+
+        # From local git repo
+        git_commit = factory.git_commit("/path/to/repo", "678851b...")
+        history = factory.git_history("/path/to/repo", limit=50)
 
         # IOC with verification
         ioc = factory.ioc(IOCType.COMMIT_SHA, "678851b...", "https://vendor.com/report")
@@ -77,6 +82,7 @@ class EvidenceFactory:
         self._github_client: GitHubClient | None = None
         self._wayback_client: WaybackClient | None = None
         self._gharchive_client: GHArchiveClient | None = None
+        self._git_clients: dict[str, GitClient] = {}
         self._gharchive_credentials = gharchive_credentials
         self._gharchive_project = gharchive_project
 
@@ -100,6 +106,12 @@ class EvidenceFactory:
                 project_id=self._gharchive_project,
             )
         return self._gharchive_client
+
+    def git(self, repo_path: str = ".") -> GitClient:
+        """Get or create GitClient for a repository path."""
+        if repo_path not in self._git_clients:
+            self._git_clients[repo_path] = GitClient(repo_path)
+        return self._git_clients[repo_path]
 
     # =========================================================================
     # GITHUB API METHODS
@@ -326,12 +338,21 @@ class EvidenceFactory:
         url: str,
         from_date: str | None = None,
         to_date: str | None = None,
+        limit: int = 1000,
     ) -> SnapshotObservation:
-        """Create SnapshotObservation from Wayback Machine."""
+        """Create SnapshotObservation from Wayback Machine.
+
+        Args:
+            url: URL to search for archived snapshots
+            from_date: Start date (YYYYMMDD format)
+            to_date: End date (YYYYMMDD format)
+            limit: Maximum number of snapshots to return (default 1000)
+        """
         snapshots_data = self.wayback.search_cdx(
             url=url,
             from_date=from_date,
             to_date=to_date,
+            limit=limit,
         )
         now = datetime.now(timezone.utc)
 
@@ -358,6 +379,147 @@ class EvidenceFactory:
             snapshots=snapshots,
             total_snapshots=len(snapshots),
         )
+
+    # =========================================================================
+    # LOCAL GIT METHODS
+    # =========================================================================
+
+    def git_commit(self, repo_path: str, sha: str) -> CommitObservation:
+        """Create CommitObservation from local git repository.
+
+        Args:
+            repo_path: Path to the git repository
+            sha: Commit SHA (full or abbreviated)
+
+        Returns:
+            CommitObservation with verification pointing to local git
+        """
+        client = self.git(repo_path)
+        data = client.get_commit(sha)
+        files_data = client.get_commit_files(sha)
+        repo_info = client.get_repo_info()
+        now = datetime.now(timezone.utc)
+
+        files = [
+            FileChange(
+                filename=f["filename"],
+                status=f["status"],
+                additions=0,
+                deletions=0,
+            )
+            for f in files_data
+        ]
+
+        owner = repo_info.get("owner") or "local"
+        name = repo_info.get("name") or repo_path.rstrip("/").split("/")[-1]
+
+        return CommitObservation(
+            evidence_id=generate_evidence_id("commit-git", repo_path, data["sha"]),
+            original_when=parse_datetime_strict(data["committer"]["date"]),
+            original_who=make_actor(data["author"]["name"]),
+            original_what=data["message"].split("\n")[0],
+            observed_when=now,
+            observed_by=EvidenceSource.GIT,
+            observed_what=f"Commit {data['sha'][:8]} observed from local git repo",
+            repository=make_repo(owner, name),
+            verification=VerificationInfo(
+                source=EvidenceSource.GIT,
+                repo_path=repo_path,
+            ),
+            sha=data["sha"],
+            message=data["message"],
+            author=CommitAuthor(
+                name=data["author"]["name"],
+                email=data["author"]["email"],
+                date=parse_datetime_strict(data["author"]["date"]),
+            ),
+            committer=CommitAuthor(
+                name=data["committer"]["name"],
+                email=data["committer"]["email"],
+                date=parse_datetime_strict(data["committer"]["date"]),
+            ),
+            parents=data["parents"],
+            files=files,
+            is_dangling=False,
+        )
+
+    def git_history(
+        self,
+        repo_path: str,
+        ref: str = "HEAD",
+        since: str | None = None,
+        until: str | None = None,
+        author: str | None = None,
+        limit: int = 100,
+    ) -> list[CommitObservation]:
+        """Create CommitObservations for commit history from local git.
+
+        Args:
+            repo_path: Path to the git repository
+            ref: Branch, tag, or commit to start from
+            since: Only commits after this date
+            until: Only commits before this date
+            author: Filter by author name/email
+            limit: Maximum commits to return
+
+        Returns:
+            List of CommitObservation objects
+        """
+        client = self.git(repo_path)
+        commits = client.get_log(ref=ref, since=since, until=until, author=author, limit=limit)
+        repo_info = client.get_repo_info()
+        now = datetime.now(timezone.utc)
+
+        owner = repo_info.get("owner") or "local"
+        name = repo_info.get("name") or repo_path.rstrip("/").split("/")[-1]
+
+        observations = []
+        for c in commits:
+            observations.append(CommitObservation(
+                evidence_id=generate_evidence_id("commit-git", repo_path, c["sha"]),
+                original_when=parse_datetime_strict(c["author"]["date"]),
+                original_who=make_actor(c["author"]["name"]),
+                original_what=c["message"],
+                observed_when=now,
+                observed_by=EvidenceSource.GIT,
+                observed_what=f"Commit {c['sha'][:8]} from local git history",
+                repository=make_repo(owner, name),
+                verification=VerificationInfo(
+                    source=EvidenceSource.GIT,
+                    repo_path=repo_path,
+                ),
+                sha=c["sha"],
+                message=c["message"],
+                author=CommitAuthor(
+                    name=c["author"]["name"],
+                    email=c["author"]["email"],
+                    date=parse_datetime_strict(c["author"]["date"]),
+                ),
+                committer=CommitAuthor(
+                    name=c["author"]["name"],
+                    email=c["author"]["email"],
+                    date=parse_datetime_strict(c["author"]["date"]),
+                ),
+                parents=[],
+                files=[],
+                is_dangling=False,
+            ))
+
+        return observations
+
+    def git_blame(self, repo_path: str, file_path: str, ref: str = "HEAD") -> list[dict]:
+        """Get blame information for a file from local git.
+
+        Args:
+            repo_path: Path to the git repository
+            file_path: File path relative to repo root
+            ref: Commit, branch, or tag
+
+        Returns:
+            List of blame entries with sha, author, line_number, content
+        """
+        client = self.git(repo_path)
+        return client.get_blame(file_path, ref)
 
     # =========================================================================
     # GH ARCHIVE METHODS

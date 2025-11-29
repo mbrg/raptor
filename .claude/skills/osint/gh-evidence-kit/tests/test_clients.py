@@ -6,12 +6,7 @@ Tests the extracted client classes. These are mostly structural tests
 since the actual API calls require network access (covered in integration tests).
 """
 
-import sys
-from pathlib import Path
-
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src._clients import GHArchiveClient, GitClient, GitHubClient, SourceClient, WaybackClient
 from src._schema import EvidenceSource
@@ -40,9 +35,20 @@ class TestSourceClientProtocol:
         client = GHArchiveClient()
         assert isinstance(client, SourceClient)
 
-    def test_git_client_is_source_client(self):
+    def test_git_client_is_source_client(self, tmp_path):
         """GitClient implements SourceClient protocol."""
-        client = GitClient()
+        # Create a minimal git repo for testing
+        import subprocess
+        env = {"GIT_CONFIG_GLOBAL": "/dev/null", "HOME": str(tmp_path)}
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True, env=env)
+        subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=tmp_path, capture_output=True, check=True, env=env)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_path, capture_output=True, check=True, env=env)
+        subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=tmp_path, capture_output=True, check=True, env=env)
+        (tmp_path / "test.txt").write_text("test")
+        subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True, env=env)
+        subprocess.run(["git", "commit", "-m", "test"], cwd=tmp_path, capture_output=True, check=True, env=env)
+
+        client = GitClient(str(tmp_path))
         assert isinstance(client, SourceClient)
 
 
@@ -105,6 +111,11 @@ class TestWaybackClient:
         client = WaybackClient()
         assert hasattr(client, "search_cdx")
         assert hasattr(client, "get_snapshot")
+        assert hasattr(client, "check_availability")
+
+    def test_archive_url(self):
+        """ARCHIVE_URL is correct."""
+        assert "web.archive.org/web" in WaybackClient.ARCHIVE_URL
 
 
 # =============================================================================
@@ -146,30 +157,126 @@ class TestGHArchiveClient:
 # =============================================================================
 
 
-class TestGitClient:
-    """Test GitClient structure and properties."""
+@pytest.fixture
+def git_repo(tmp_path):
+    """Create a git repository for testing."""
+    import subprocess
 
-    def test_source_is_git(self):
+    env = {"GIT_CONFIG_GLOBAL": "/dev/null", "HOME": str(tmp_path)}
+
+    subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=tmp_path, capture_output=True, check=True, env=env)
+
+    # Create initial commit
+    (tmp_path / "test.txt").write_text("initial content")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=tmp_path, capture_output=True, check=True, env=env)
+
+    # Create second commit
+    (tmp_path / "test.txt").write_text("modified content")
+    subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True, check=True, env=env)
+    subprocess.run(["git", "commit", "-m", "Second commit"], cwd=tmp_path, capture_output=True, check=True, env=env)
+
+    return tmp_path
+
+
+class TestGitClient:
+    """Test GitClient structure and methods."""
+
+    def test_source_is_git(self, git_repo):
         """Source property returns GIT."""
-        client = GitClient()
+        client = GitClient(str(git_repo))
         assert client.source == EvidenceSource.GIT
 
-    def test_accepts_repo_path(self):
+    def test_accepts_repo_path(self, git_repo):
         """Can initialize with repo path."""
-        client = GitClient(repo_path="/path/to/repo")
-        assert client.repo_path == "/path/to/repo"
+        client = GitClient(str(git_repo))
+        assert client.repo_path == str(git_repo)
 
-    def test_default_repo_path(self):
-        """Default repo path is current directory."""
-        client = GitClient()
-        assert client.repo_path == "."
+    def test_validates_git_repo(self, tmp_path):
+        """Raises ValueError for non-git directory."""
+        with pytest.raises(ValueError, match="Not a git repository"):
+            GitClient(str(tmp_path))
 
-    def test_has_required_methods(self):
+    def test_has_required_methods(self, git_repo):
         """Client has required methods."""
-        client = GitClient()
+        client = GitClient(str(git_repo))
         assert hasattr(client, "get_commit")
         assert hasattr(client, "get_commit_files")
         assert hasattr(client, "get_log")
+        assert hasattr(client, "get_file_content")
+        assert hasattr(client, "get_branches")
+        assert hasattr(client, "get_tags")
+        assert hasattr(client, "get_blame")
+        assert hasattr(client, "get_remote_url")
+        assert hasattr(client, "get_repo_info")
+
+    def test_get_commit(self, git_repo):
+        """Can get commit info."""
+        import subprocess
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=git_repo, capture_output=True, text=True, check=True
+        )
+        sha = result.stdout.strip()
+
+        client = GitClient(str(git_repo))
+        commit = client.get_commit(sha)
+
+        assert commit["sha"] == sha
+        assert commit["author"]["name"] == "Test User"
+        assert commit["message"] == "Second commit"
+
+    def test_get_log(self, git_repo):
+        """Can get commit log."""
+        client = GitClient(str(git_repo))
+        log = client.get_log(limit=10)
+
+        assert len(log) == 2
+        assert log[0]["message"] == "Second commit"
+        assert log[1]["message"] == "Initial commit"
+
+    def test_get_commit_files(self, git_repo):
+        """Can get files changed in commit."""
+        import subprocess
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=git_repo, capture_output=True, text=True, check=True
+        )
+        sha = result.stdout.strip()
+
+        client = GitClient(str(git_repo))
+        files = client.get_commit_files(sha)
+
+        assert len(files) == 1
+        assert files[0]["filename"] == "test.txt"
+        assert files[0]["status"] == "modified"
+
+    def test_get_file_content(self, git_repo):
+        """Can get file content at ref."""
+        client = GitClient(str(git_repo))
+        content = client.get_file_content("test.txt", "HEAD")
+        assert content == "modified content"
+
+    def test_get_branches(self, git_repo):
+        """Can list branches."""
+        client = GitClient(str(git_repo))
+        branches = client.get_branches()
+
+        assert len(branches) >= 1
+        # Should have master or main
+        branch_names = [b["name"] for b in branches]
+        assert "master" in branch_names or "main" in branch_names
+
+    def test_get_repo_info(self, git_repo):
+        """Can get repository info."""
+        client = GitClient(str(git_repo))
+        info = client.get_repo_info()
+
+        assert "current_branch" in info
+        assert "head_sha" in info
 
 
 # =============================================================================

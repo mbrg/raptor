@@ -7,14 +7,11 @@ Fixtures are defined in conftest.py.
 """
 
 import json
-import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src import EvidenceStore, EvidenceSource, load_evidence_from_json
 

@@ -15,12 +15,9 @@ Integration tests that hit real APIs should be separate and marked accordingly.
 """
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src import (
     EvidenceFactory,
@@ -28,6 +25,15 @@ from src import (
     EvidenceSource,
     IOCType,
 )
+
+# Load fixture directly (conftest's load_fixture isn't importable outside pytest)
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+
+
+def load_fixture(name: str) -> dict | list:
+    """Load a fixture file."""
+    with open(FIXTURES_DIR / name) as f:
+        return json.load(f)
 
 
 # =============================================================================
@@ -177,14 +183,6 @@ class TestJSONContract:
 # These tests document the expected structure of real API data.
 # They load fixtures and verify they match expected format.
 # =============================================================================
-
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
-
-
-def load_fixture(name: str) -> dict | list:
-    """Load a fixture file."""
-    with open(FIXTURES_DIR / name) as f:
-        return json.load(f)
 
 
 class TestFixtureDocumentation:
