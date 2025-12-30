@@ -1,0 +1,24 @@
+{
+  "name": "raptor-fuzz",
+  "version": "3.0.0",
+  "description": "RAPTOR Binary Fuzzer - AFL++ orchestration for crash discovery and exploit generation",
+  "author": {
+    "name": "RAPTOR Security Team",
+    "email": "raptor@mbgsec.com"
+  },
+  "homepage": "https://github.com/mbrg/raptor",
+  "repository": "https://github.com/mbrg/raptor",
+  "license": "Apache-2.0",
+  "keywords": ["fuzzing", "afl++", "binary", "crash", "exploit"],
+  "commands": ["commands/fuzz.md"],
+  "dependencies": {
+    "python": ">=3.9",
+    "system": ["afl-fuzz", "afl-clang-fast"]
+  },
+  "permissions": {
+    "sandbox": {
+      "enabled": true,
+      "autoAllowBashIfSandboxed": true
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "raptor-scan",
+  "version": "3.0.0",
+  "description": "RAPTOR Code Security Scan - Static analysis with Semgrep for vulnerability detection",
+  "author": {
+    "name": "RAPTOR Security Team",
+    "email": "raptor@mbgsec.com"
+  },
+  "homepage": "https://github.com/mbrg/raptor",
+  "repository": "https://github.com/mbrg/raptor",
+  "license": "Apache-2.0",
+  "keywords": ["security", "scanning", "semgrep", "static-analysis", "vulnerabilities"],
+  "commands": ["commands/scan.md"],
+  "dependencies": {
+    "python": ">=3.9",
+    "pip": ["semgrep>=1.0.0"]
+  },
+  "permissions": {
+    "sandbox": {
+      "enabled": true,
+      "autoAllowBashIfSandboxed": true
+    }
+  }
+}

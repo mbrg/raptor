@@ -1,0 +1,116 @@
+{
+  "name": "raptor-plugins",
+  "owner": {
+    "name": "RAPTOR Security Team",
+    "email": "raptor@mbgsec.com"
+  },
+  "metadata": {
+    "description": "RAPTOR Security Framework - Autonomous offensive and defensive research tools for Claude Code",
+    "version": "3.0.0",
+    "homepage": "https://github.com/mbrg/raptor",
+    "license": "Apache-2.0",
+    "keywords": ["security", "vulnerability", "scanning", "fuzzing", "forensics", "crash-analysis", "offensive-security", "defensive-security"]
+  },
+  "plugins": [
+    {
+      "name": "raptor-scan",
+      "source": "./plugins/raptor-scan",
+      "description": "RAPTOR Code Security Scan - Static analysis with Semgrep for vulnerability detection",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["security", "scanning", "semgrep", "static-analysis", "vulnerabilities"]
+    },
+    {
+      "name": "raptor-fuzz",
+      "source": "./plugins/raptor-fuzz",
+      "description": "RAPTOR Binary Fuzzer - AFL++ orchestration for crash discovery and exploit generation",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["fuzzing", "afl++", "binary", "crash", "exploit"]
+    },
+    {
+      "name": "raptor-web",
+      "source": "./plugins/raptor-web",
+      "description": "RAPTOR Web Application Scanner - OWASP Top 10 vulnerability detection",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["web", "owasp", "xss", "sqli", "scanner"]
+    },
+    {
+      "name": "raptor-agentic",
+      "source": "./plugins/raptor-agentic",
+      "description": "RAPTOR Full Autonomous Workflow - Semgrep + CodeQL + LLM analysis with exploit/patch generation",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["autonomous", "ai", "llm", "exploit", "patch"]
+    },
+    {
+      "name": "raptor-codeql",
+      "source": "./plugins/raptor-codeql",
+      "description": "RAPTOR CodeQL Analysis - Deep semantic code analysis with dataflow tracking",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["codeql", "semantic", "dataflow", "taint-analysis"]
+    },
+    {
+      "name": "raptor-analyze",
+      "source": "./plugins/raptor-analyze",
+      "description": "RAPTOR LLM Analysis - AI-powered vulnerability analysis on existing SARIF files",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["llm", "ai", "sarif", "analysis"]
+    },
+    {
+      "name": "raptor-crash-analysis",
+      "source": "./plugins/raptor-crash-analysis",
+      "description": "RAPTOR Crash Analysis - Autonomous root-cause analysis for C/C++ crashes using rr, ASAN, and coverage",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["crash", "rr", "asan", "debugging", "root-cause"]
+    },
+    {
+      "name": "raptor-oss-forensics",
+      "source": "./plugins/raptor-oss-forensics",
+      "description": "RAPTOR OSS Forensics - GitHub forensic investigation with GH Archive, Wayback Machine, and git analysis",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["forensics", "github", "osint", "investigation", "supply-chain"]
+    },
+    {
+      "name": "raptor-exploit",
+      "source": "./plugins/raptor-exploit",
+      "description": "RAPTOR Exploit Generator - Generate proof-of-concept exploits (beta)",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["exploit", "poc", "security-research"]
+    },
+    {
+      "name": "raptor-patch",
+      "source": "./plugins/raptor-patch",
+      "description": "RAPTOR Patch Generator - Generate secure patches for vulnerabilities (beta)",
+      "version": "3.0.0",
+      "author": {
+        "name": "RAPTOR Security Team"
+      },
+      "keywords": ["patch", "fix", "remediation"]
+    }
+  ]
+}

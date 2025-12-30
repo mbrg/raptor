@@ -1,0 +1,26 @@
+{
+  "name": "raptor-crash-analysis",
+  "version": "3.0.0",
+  "description": "RAPTOR Crash Analysis - Autonomous root-cause analysis for C/C++ crashes using rr, ASAN, and coverage",
+  "author": {
+    "name": "RAPTOR Security Team",
+    "email": "raptor@mbgsec.com"
+  },
+  "homepage": "https://github.com/mbrg/raptor",
+  "repository": "https://github.com/mbrg/raptor",
+  "license": "Apache-2.0",
+  "keywords": ["crash", "rr", "asan", "debugging", "root-cause"],
+  "commands": ["commands/crash-analysis.md"],
+  "agents": "agents/",
+  "skills": "skills/",
+  "dependencies": {
+    "python": ">=3.9",
+    "system": ["rr", "gdb", "gcov", "gcc or clang with ASAN support"]
+  },
+  "permissions": {
+    "sandbox": {
+      "enabled": true,
+      "autoAllowBashIfSandboxed": true
+    }
+  }
+}

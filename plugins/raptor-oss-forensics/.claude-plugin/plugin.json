@@ -1,0 +1,31 @@
+{
+  "name": "raptor-oss-forensics",
+  "version": "3.0.0",
+  "description": "RAPTOR OSS Forensics - GitHub forensic investigation with GH Archive, Wayback Machine, and git analysis",
+  "author": {
+    "name": "RAPTOR Security Team",
+    "email": "raptor@mbgsec.com"
+  },
+  "homepage": "https://github.com/mbrg/raptor",
+  "repository": "https://github.com/mbrg/raptor",
+  "license": "Apache-2.0",
+  "keywords": ["forensics", "github", "osint", "investigation", "supply-chain"],
+  "commands": ["commands/oss-forensics.md"],
+  "agents": "agents/",
+  "skills": "skills/",
+  "dependencies": {
+    "python": ">=3.9",
+    "pip": ["google-cloud-bigquery", "google-auth", "pydantic", "requests"],
+    "env": ["GOOGLE_APPLICATION_CREDENTIALS"]
+  },
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:web.archive.org)",
+      "WebFetch(domain:archive.org)"
+    ],
+    "sandbox": {
+      "enabled": true,
+      "autoAllowBashIfSandboxed": true
+    }
+  }
+}

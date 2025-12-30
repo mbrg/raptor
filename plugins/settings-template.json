@@ -1,0 +1,34 @@
+{
+  "$comment": "Copy this to your project's .claude/settings.json to enable RAPTOR plugins",
+  "extraKnownMarketplaces": {
+    "raptor-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "mbrg/raptor"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "$comment": "Set plugins to true to enable them for your project",
+    "raptor-scan@raptor-plugins": true,
+    "raptor-fuzz@raptor-plugins": false,
+    "raptor-web@raptor-plugins": false,
+    "raptor-agentic@raptor-plugins": true,
+    "raptor-codeql@raptor-plugins": false,
+    "raptor-analyze@raptor-plugins": false,
+    "raptor-crash-analysis@raptor-plugins": false,
+    "raptor-oss-forensics@raptor-plugins": false,
+    "raptor-exploit@raptor-plugins": false,
+    "raptor-patch@raptor-plugins": false
+  },
+  "permissions": {
+    "$comment": "These permissions are recommended for RAPTOR plugins",
+    "allow": [],
+    "deny": [],
+    "ask": []
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  }
+}

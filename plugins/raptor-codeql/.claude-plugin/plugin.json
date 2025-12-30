@@ -1,0 +1,24 @@
+{
+  "name": "raptor-codeql",
+  "version": "3.0.0",
+  "description": "RAPTOR CodeQL Analysis - Deep semantic code analysis with dataflow tracking",
+  "author": {
+    "name": "RAPTOR Security Team",
+    "email": "raptor@mbgsec.com"
+  },
+  "homepage": "https://github.com/mbrg/raptor",
+  "repository": "https://github.com/mbrg/raptor",
+  "license": "Apache-2.0",
+  "keywords": ["codeql", "semantic", "dataflow", "taint-analysis"],
+  "commands": ["commands/codeql.md"],
+  "dependencies": {
+    "python": ">=3.9",
+    "system": ["codeql"]
+  },
+  "permissions": {
+    "sandbox": {
+      "enabled": true,
+      "autoAllowBashIfSandboxed": true
+    }
+  }
+}

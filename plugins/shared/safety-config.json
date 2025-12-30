@@ -1,0 +1,78 @@
+{
+  "$schema": "https://claude.ai/schemas/plugin-safety-config.json",
+  "version": "1.0.0",
+  "description": "RAPTOR Plugin Safety Configuration - Default security settings for all plugins",
+  "defaults": {
+    "sandbox": {
+      "enabled": true,
+      "autoAllowBashIfSandboxed": true
+    },
+    "permissions": {
+      "allow": [],
+      "deny": [],
+      "ask": []
+    },
+    "network": {
+      "allowedDomains": [
+        "api.github.com",
+        "web.archive.org",
+        "archive.org"
+      ],
+      "denyOutbound": false
+    },
+    "filesystem": {
+      "allowedPaths": [
+        "./",
+        "./out/",
+        "./test/",
+        "$TMPDIR"
+      ],
+      "denyPaths": [
+        "~/.ssh/",
+        "~/.aws/",
+        "~/.config/gcloud/"
+      ]
+    }
+  },
+  "pluginOverrides": {
+    "raptor-oss-forensics": {
+      "network": {
+        "allowedDomains": [
+          "api.github.com",
+          "web.archive.org",
+          "archive.org",
+          "bigquery.googleapis.com"
+        ]
+      },
+      "permissions": {
+        "allow": [
+          "WebFetch(domain:web.archive.org)",
+          "WebFetch(domain:archive.org)"
+        ]
+      }
+    },
+    "raptor-web": {
+      "network": {
+        "comment": "Web scanner needs to connect to target URLs - user approval required",
+        "denyOutbound": false
+      }
+    }
+  },
+  "safetyGuidelines": {
+    "exploitGeneration": {
+      "purpose": "educational and authorized security testing only",
+      "restrictions": [
+        "Never execute generated exploits without explicit user approval",
+        "Always display exploit code before execution",
+        "Only target systems the user owns or has explicit permission to test"
+      ]
+    },
+    "dataHandling": {
+      "restrictions": [
+        "Never transmit findings to external services without user approval",
+        "Store all output in local out/ directory",
+        "Do not persist credentials or API keys in output files"
+      ]
+    }
+  }
+}

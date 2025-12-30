@@ -1,0 +1,25 @@
+{
+  "name": "raptor-agentic",
+  "version": "3.0.0",
+  "description": "RAPTOR Full Autonomous Workflow - Semgrep + CodeQL + LLM analysis with exploit/patch generation",
+  "author": {
+    "name": "RAPTOR Security Team",
+    "email": "raptor@mbgsec.com"
+  },
+  "homepage": "https://github.com/mbrg/raptor",
+  "repository": "https://github.com/mbrg/raptor",
+  "license": "Apache-2.0",
+  "keywords": ["autonomous", "ai", "llm", "exploit", "patch"],
+  "commands": ["commands/agentic.md"],
+  "dependencies": {
+    "python": ">=3.9",
+    "pip": ["semgrep>=1.0.0", "anthropic", "openai"],
+    "env": ["ANTHROPIC_API_KEY or OPENAI_API_KEY"]
+  },
+  "permissions": {
+    "sandbox": {
+      "enabled": true,
+      "autoAllowBashIfSandboxed": true
+    }
+  }
+}

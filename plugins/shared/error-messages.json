@@ -1,0 +1,103 @@
+{
+  "$schema": "https://claude.ai/schemas/plugin-errors.json",
+  "version": "1.0.0",
+  "description": "RAPTOR Plugin Error Messages - Consistent error handling across all plugins",
+  "support": {
+    "url": "https://github.com/mbrg/raptor/issues",
+    "message": "For help, report issues at: https://github.com/mbrg/raptor/issues"
+  },
+  "errors": {
+    "SEMGREP_NOT_INSTALLED": {
+      "code": "E001",
+      "message": "Semgrep is not installed or not in PATH",
+      "solution": "Install with: pip install semgrep",
+      "plugins": ["raptor-scan", "raptor-agentic"]
+    },
+    "CODEQL_NOT_INSTALLED": {
+      "code": "E002",
+      "message": "CodeQL CLI is not installed or not in PATH",
+      "solution": "Download from: https://github.com/github/codeql-cli-binaries\nFollow setup: https://codeql.github.com/docs/codeql-cli/getting-started-with-the-codeql-cli/",
+      "plugins": ["raptor-codeql", "raptor-agentic"]
+    },
+    "AFL_NOT_INSTALLED": {
+      "code": "E003",
+      "message": "AFL++ is not installed or not in PATH",
+      "solution": "Install:\n  macOS: brew install afl-fuzz\n  Linux: apt install afl++ or build from source\n  Source: https://github.com/AFLplusplus/AFLplusplus",
+      "plugins": ["raptor-fuzz"]
+    },
+    "RR_NOT_INSTALLED": {
+      "code": "E004",
+      "message": "rr debugger is not installed",
+      "solution": "Install:\n  Linux: sudo apt install rr\n  Source: https://github.com/rr-debugger/rr\n\nNote: rr requires Linux with perf_event_paranoid <= 1\n  Check: cat /proc/sys/kernel/perf_event_paranoid\n  Fix: sudo sysctl kernel.perf_event_paranoid=1",
+      "plugins": ["raptor-crash-analysis"]
+    },
+    "GDB_NOT_INSTALLED": {
+      "code": "E005",
+      "message": "GDB debugger is not installed",
+      "solution": "Install:\n  Linux: sudo apt install gdb\n  macOS: brew install gdb (or use lldb)",
+      "plugins": ["raptor-crash-analysis", "raptor-fuzz"]
+    },
+    "NO_LLM_API_KEY": {
+      "code": "E010",
+      "message": "No LLM API key found",
+      "solution": "Set one of these environment variables:\n  export ANTHROPIC_API_KEY=your_key\n  export OPENAI_API_KEY=your_key",
+      "plugins": ["raptor-agentic", "raptor-analyze", "raptor-exploit", "raptor-patch"]
+    },
+    "NO_GCP_CREDENTIALS": {
+      "code": "E011",
+      "message": "GOOGLE_APPLICATION_CREDENTIALS not set",
+      "solution": "Setup steps:\n1. Create Google Cloud Project: https://console.cloud.google.com/\n2. Enable BigQuery API\n3. Create Service Account with 'BigQuery User' role\n4. Download JSON credentials\n5. Set: export GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json\n\nNote: BigQuery offers 1 TB/month free queries.",
+      "plugins": ["raptor-oss-forensics"]
+    },
+    "PYTHON_VERSION": {
+      "code": "E020",
+      "message": "Python version too old",
+      "solution": "RAPTOR requires Python 3.9 or later.\nCurrent: {current_version}\nRequired: >= 3.9",
+      "plugins": ["all"]
+    },
+    "PERMISSION_DENIED": {
+      "code": "E030",
+      "message": "Permission denied - cannot access path",
+      "solution": "Check file permissions or run with appropriate privileges.\nPath: {path}",
+      "plugins": ["all"]
+    },
+    "NETWORK_ERROR": {
+      "code": "E040",
+      "message": "Network request failed",
+      "solution": "Check your internet connection and try again.\nIf using a proxy, ensure it's configured correctly.\nTarget: {target}",
+      "plugins": ["raptor-web", "raptor-oss-forensics"]
+    },
+    "TIMEOUT": {
+      "code": "E050",
+      "message": "Operation timed out",
+      "solution": "The operation took longer than expected.\nConsider increasing the timeout or running on a smaller target.\nOperation: {operation}\nTimeout: {timeout}s",
+      "plugins": ["all"]
+    },
+    "RAPTOR_NOT_FOUND": {
+      "code": "E100",
+      "message": "RAPTOR framework not found",
+      "solution": "The RAPTOR plugin requires the main RAPTOR framework.\nEnsure raptor.py is accessible at: $RAPTOR_ROOT/raptor.py\n\nIf using plugins standalone, clone the RAPTOR repo:\n  git clone https://github.com/mbrg/raptor.git\n  export RAPTOR_ROOT=/path/to/raptor",
+      "plugins": ["all"]
+    }
+  },
+  "warnings": {
+    "MACOS_SHM_LIMIT": {
+      "code": "W001",
+      "message": "macOS shared memory limit may be too low for fuzzing",
+      "solution": "Run: sudo afl-system-config",
+      "plugins": ["raptor-fuzz"]
+    },
+    "NO_ASAN": {
+      "code": "W002",
+      "message": "Binary not compiled with AddressSanitizer",
+      "solution": "For better crash detection, recompile with:\n  clang -fsanitize=address -g your_code.c",
+      "plugins": ["raptor-fuzz", "raptor-crash-analysis"]
+    },
+    "RATE_LIMIT": {
+      "code": "W010",
+      "message": "API rate limit approaching",
+      "solution": "Consider using authenticated requests for higher limits.\nGitHub: Set GITHUB_TOKEN environment variable\nBigQuery: Already using service account",
+      "plugins": ["raptor-oss-forensics"]
+    }
+  }
+}
