@@ -1,7 +1,89 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # RAPTOR - Autonomous Offensive/Defensive Research Framework
 
 Safe operations (install, scan, read, generate): DO IT.
 Dangerous operations (apply patches, delete, git push): ASK FIRST.
+
+---
+
+## DEVELOPMENT
+
+**Setup:**
+```bash
+pip install -r requirements.txt        # Core dependencies
+pip install -r requirements-dev.txt    # Dev tools (ruff, mypy, pytest)
+```
+
+**Testing:**
+```bash
+pytest                                 # Run all tests
+pytest test/                           # Run tests in test/ directory
+pytest -v test/test_foo.py::test_bar   # Run single test
+```
+
+**Linting/Type Checking:**
+```bash
+ruff check .                           # Lint
+ruff format .                          # Auto-format
+mypy packages/                         # Type check
+```
+
+**CLI Modes:**
+```bash
+python3 raptor.py scan --repo /path    # Static analysis (Semgrep)
+python3 raptor.py fuzz --binary /path  # Binary fuzzing (AFL++)
+python3 raptor.py web --url https://x  # Web security testing
+python3 raptor.py agentic --repo /path # Full autonomous workflow
+python3 raptor.py codeql --repo /path  # CodeQL analysis
+python3 raptor.py analyze --repo /path --sarif findings.sarif  # LLM analysis
+```
+
+---
+
+## ARCHITECTURE
+
+**Directory Layout:**
+- `raptor.py` → Main unified launcher, routes to mode handlers
+- `raptor_agentic.py` → Source code analysis workflow (Semgrep + LLM)
+- `raptor_codeql.py` → CodeQL deep analysis workflow
+- `raptor_fuzzing.py` → Binary fuzzing workflow (AFL++ + crash analysis)
+
+**Packages Layer** (`packages/`):
+- `static-analysis/` → Semgrep scanning (`scanner.py`)
+- `codeql/` → CodeQL database, queries, dataflow validation (`agent.py`)
+- `llm_analysis/` → LLM-powered vulnerability analysis (`agent.py`, `crash_agent.py`)
+- `autonomous/` → Planning, memory, exploit validation
+- `fuzzing/` → AFL++ orchestration, crash collection
+- `binary_analysis/` → GDB crash analysis
+- `web/` → Web app testing (crawler, fuzzer, scanner)
+
+**Core Layer** (`core/`):
+- `config.py` → RaptorConfig for paths/settings
+- `logging.py` → Structured JSONL logging
+- `sarif/parser.py` → SARIF 2.1.0 parsing
+
+**Engine Layer** (`engine/`):
+- `semgrep/rules/` → Custom Semgrep rules
+- `codeql/suites/` → CodeQL query suites
+
+**Tiered Expertise** (`tiers/`):
+- `analysis-guidance.md` → Auto-loads after scans
+- `recovery.md` → Auto-loads on errors
+- `personas/` → 9 expert personas (load on-demand with "Use [persona]")
+
+**Claude Code Integration** (`.claude/`):
+- `commands/` → Slash command definitions (/scan, /fuzz, etc.)
+- `agents/` → Agent configurations for crash-analysis and oss-forensics
+- `skills/` → Specialized skills (rr-debugger, github-evidence-kit, etc.)
+
+**Key Design Principles:**
+- Packages have no cross-imports (only import from `core/`)
+- Each package agent is standalone executable
+- Python orchestrates, Claude shows results concisely
+- Outputs go to `out/` directory
 
 ---
 
@@ -90,7 +172,10 @@ The `/oss-forensics` command provides evidence-backed forensic investigation for
 
 ---
 
-## STRUCTURE
+## EXTERNAL DEPENDENCIES
 
-Python orchestrates everything. Claude shows results concisely.
-Never circumvent Python execution flow.
+**Required:** Semgrep (`pip install semgrep`)
+**Optional:** CodeQL CLI, AFL++, rr debugger, GDB
+**For OSS Forensics:** `GOOGLE_APPLICATION_CREDENTIALS` env var for BigQuery
+
+See `DEPENDENCIES.md` for full list and licenses.
