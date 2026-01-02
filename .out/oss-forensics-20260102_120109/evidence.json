@@ -1,0 +1,581 @@
+[
+  {
+    "evidence_id": "repo-search-v1-shai-hulud-repository",
+    "evidence_type": "search_result",
+    "observed_when": "2026-01-02T12:01:09Z",
+    "observed_by": "github_api",
+    "observed_what": "Repository search for v1 marker 'Shai-Hulud Repository in:description' returned 31 repositories",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/search/repositories?q=Shai-Hulud+Repository+in:description",
+      "verified_at": "2026-01-02T12:01:09Z"
+    },
+    "data": {
+      "total_count": 31,
+      "marker": "Shai-Hulud Repository.",
+      "key_repos": [
+        "B611/Shai-Hulud",
+        "Srylax/awesome-shai-hulud",
+        "nagliwiz/Shai-Hulud-Hulud-Shai",
+        "sacfirstassault/Shai-Hulud",
+        "SK3Artemis/Shai-Hulud"
+      ]
+    }
+  },
+  {
+    "evidence_id": "repo-search-v2-sha1-hulud",
+    "evidence_type": "search_result",
+    "observed_when": "2026-01-02T12:01:09Z",
+    "observed_by": "github_api",
+    "observed_what": "Repository search for v2 marker 'Sha1-Hulud in:description' returned 269 repositories",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/search/repositories?q=Sha1-Hulud+in:description",
+      "verified_at": "2026-01-02T12:01:09Z"
+    },
+    "data": {
+      "total_count": 269,
+      "marker": "Sha1-Hulud",
+      "key_repos": [
+        "standujar/sha1-hulud-scanner",
+        "Security-Phoenix-demo/Shai-Hulud-Sha1-Hulud-V2-npm-compromise-scanner",
+        "mscalindt/top-secret",
+        "developerjhp/sha1-hulud-scanner",
+        "jaucourt/sha1-hulud-scan"
+      ],
+      "note": "Many are scanner/detection tools created by security researchers"
+    }
+  },
+  {
+    "evidence_id": "repo-search-v3-goldox-t3chs",
+    "evidence_type": "search_result",
+    "observed_when": "2026-01-02T12:01:09Z",
+    "observed_by": "github_api",
+    "observed_what": "Repository search for v3 marker 'Goldox-T3chs in:description' returned 0 repositories",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/search/repositories?q=Goldox-T3chs+in:description",
+      "verified_at": "2026-01-02T12:01:09Z"
+    },
+    "data": {
+      "total_count": 0,
+      "marker": "Goldox-T3chs: Only Happy Girl.",
+      "note": "v3 repos appear to have been deleted or marker changed - requires GH Archive for historical data"
+    }
+  },
+  {
+    "evidence_id": "gharchive-v3-goldox-search-dec2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive query for v3 marker 'Goldox-T3chs' or 'Golden Path' or 'Only Happy Girl' in CreateEvent descriptions",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202512",
+      "query": "SELECT ... WHERE type='CreateEvent' AND description LIKE '%Goldox-T3chs%'"
+    },
+    "data": {
+      "total_count": 0,
+      "date_range": "December 2025",
+      "note": "No repos with v3 description markers found in GH Archive - threat actor may have used different TTPs or repos deleted before archival"
+    }
+  },
+  {
+    "evidence_id": "gharchive-v1-markers-sept2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive query for v1/v2 markers in September 2025 CreateEvents",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202509"
+    },
+    "data": {
+      "total_count": 52,
+      "date_range": "September 2025",
+      "parsing_note": "52 repos found matching Shai-Hulud/Sha1-Hulud in description"
+    }
+  },
+  {
+    "evidence_id": "gharchive-shai-hulud-repos-dec2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive search for repos with 'shai-hulud' or 'sha1-hulud' in name - December 2025",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202512"
+    },
+    "data": {
+      "total_events": 980,
+      "unique_repos": 94,
+      "unique_actors": 175,
+      "date_range": "December 2025",
+      "sample_repos": [
+        "gensecaihq/Shai-Hulud-2.0-Detector",
+        "Cobenian/shai-hulud-detect",
+        "CyberDracula/shai-hulud-2-scanner",
+        "standujar/sha1-hulud-scanner",
+        "hemachandsai/shai-hulud-malicious-packages"
+      ],
+      "note": "Majority are security researcher scanner/detection tools, not malicious repos"
+    }
+  },
+  {
+    "evidence_id": "gharchive-shai-hulud-repos-nov2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive search for repos with 'shai-hulud' in name - November 2025 (v2 timeframe)",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202511"
+    },
+    "data": {
+      "total_events": 755,
+      "unique_repos": 134,
+      "unique_actors": 271,
+      "date_range": "November 2025",
+      "note": "More v2-related activity including 288+ compromised packages reported"
+    }
+  },
+  {
+    "evidence_id": "gharchive-malicious-files-dec2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive search for malicious filenames (bun_installer.js, environment_source.js, etc.) in PushEvents",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202512"
+    },
+    "data": {
+      "total_count": 0,
+      "date_range": "December 2025",
+      "files_searched": ["bun_installer.js", "environment_source.js", "3nvir0nm3nt.json", "cl0vd.json", "pigS3cr3ts.json"],
+      "note": "No direct hits - malicious repos may have been deleted before GH Archive hourly capture, or filenames changed"
+    }
+  },
+  {
+    "evidence_id": "gharchive-vietmoney-dec2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive search for vietmoney organization activity",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202512"
+    },
+    "data": {
+      "total_count": 0,
+      "date_range": "December 2025",
+      "note": "No public GitHub events recorded for vietmoney org in December 2025 - org may be private or inactive"
+    }
+  },
+  {
+    "evidence_id": "gharchive-sha1hulud-runner-dec2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive search for SHA1HULUD self-hosted runner in WorkflowRunEvents",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202512"
+    },
+    "data": {
+      "total_count": 0,
+      "date_range": "December 2025",
+      "note": "No workflow runs with SHA1HULUD runner found - runner registration may not be captured in public events"
+    }
+  },
+  {
+    "evidence_id": "gharchive-react-big-calendar-dec2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive activity for react-big-calendar repositories",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202512"
+    },
+    "data": {
+      "total_events": 67,
+      "date_range": "December 2025",
+      "repos_found": [
+        "jquense/react-big-calendar (upstream)",
+        "elationemr/react-big-calendar",
+        "scalartech/react-big-calendar",
+        "snooslo/react-big-calendar",
+        "Doist/react-big-calendar"
+      ],
+      "note": "Legitimate calendar library activity - no vietmoney/react-big-calendar events found"
+    }
+  },
+  {
+    "evidence_id": "gharchive-asyncapi-dec2025",
+    "evidence_type": "gharchive_query",
+    "observed_when": "2026-01-02T12:10:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "GH Archive activity for asyncapi organization (mentioned in IOC reports)",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "githubarchive.month.202512"
+    },
+    "data": {
+      "total_events": 200,
+      "date_range": "December 2025",
+      "note": "Active legitimate asyncapi org development - no suspicious patterns detected"
+    }
+  },
+  {
+    "evidence_id": "gharchive-evidence-total",
+    "evidence_type": "collection_summary",
+    "observed_when": "2026-01-02T12:15:00Z",
+    "observed_by": "gharchive",
+    "observed_what": "Total GH Archive evidence collected for Shai Hulud investigation",
+    "verification": {
+      "source": "gharchive",
+      "bigquery_table": "multiple"
+    },
+    "data": {
+      "total_events": 2587,
+      "by_type": {
+        "push": 1456,
+        "watch": 315,
+        "create": 273,
+        "pull_request": 224,
+        "delete": 85,
+        "issue_comment": 79,
+        "fork": 63,
+        "issue": 49,
+        "release": 22,
+        "public": 11,
+        "member": 10
+      },
+      "date_ranges_queried": ["202509", "202511", "202512"],
+      "evidence_file": "gharchive-evidence.json"
+    }
+  },
+  {
+    "evidence_id": "hoquocdat-user-profile",
+    "evidence_type": "github_user",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "GitHub user profile for hoquocdat - compromised npm maintainer",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/users/hoquocdat",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "login": "hoquocdat",
+      "id": 37528808,
+      "name": "Ho Quoc Dat",
+      "company": "Home",
+      "location": "Ho Chi Minh City",
+      "bio": "When you are young, work to learn not work to earn.",
+      "public_repos": 18,
+      "public_gists": 2,
+      "followers": 5,
+      "following": 16,
+      "created_at": "2018-03-19T06:02:57Z",
+      "updated_at": "2025-12-25T08:27:14Z",
+      "account_age_years": 7.8,
+      "hireable": true
+    }
+  },
+  {
+    "evidence_id": "hoquocdat-old-user-profile",
+    "evidence_type": "github_user",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "GitHub user profile for hoquocdat-old - previous account of same person",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/users/hoquocdat-old",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "login": "hoquocdat-old",
+      "id": 8520934,
+      "name": "Danny Ho",
+      "location": "Ho Chi Minh City",
+      "bio": "As a full stack developer I love to make a product by my infinite passion.",
+      "public_repos": 3,
+      "public_gists": 0,
+      "followers": 11,
+      "following": 0,
+      "created_at": "2014-08-22T07:03:09Z",
+      "updated_at": "2019-02-13T09:56:55Z",
+      "account_age_years": 11.4,
+      "note": "Account appears abandoned since Feb 2019 - hoquocdat follows this account, confirming same person"
+    }
+  },
+  {
+    "evidence_id": "hoquocdat-vietmoney-membership",
+    "evidence_type": "org_membership",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "hoquocdat is a confirmed public member of vietmoney organization",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/orgs/vietmoney/members",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "member": "hoquocdat",
+      "member_id": 37528808,
+      "org": "vietmoney",
+      "org_id": 61444805,
+      "is_only_public_member": true
+    }
+  },
+  {
+    "evidence_id": "vietmoney-org-profile",
+    "evidence_type": "github_org",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "GitHub organization profile for vietmoney",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/orgs/vietmoney",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "login": "vietmoney",
+      "id": 61444805,
+      "name": "VietMoney",
+      "location": "Ho Chi Minh City, VietNam",
+      "email": "it.support@vietmoney.vn",
+      "blog": "https://developers.vietmoney.vn",
+      "public_repos": 7,
+      "followers": 3,
+      "created_at": "2020-02-25T04:03:24Z",
+      "updated_at": "2025-08-18T03:54:16Z",
+      "is_verified": false,
+      "note": "Legitimate Vietnamese fintech company"
+    }
+  },
+  {
+    "evidence_id": "vietmoney-react-big-calendar-repo-missing",
+    "evidence_type": "repo_status",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "vietmoney/react-big-calendar repository does not exist on GitHub",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/repos/vietmoney/react-big-calendar",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "status": 404,
+      "message": "Not Found",
+      "note": "Repository was likely deleted, made private, or published to npm from local without GitHub repo"
+    }
+  },
+  {
+    "evidence_id": "npm-vietmoney-react-big-calendar",
+    "evidence_type": "npm_package",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "npm_registry",
+    "observed_what": "npm package @vietmoney/react-big-calendar version history and compromise timeline",
+    "verification": {
+      "source": "npm_registry",
+      "url": "https://registry.npmjs.org/@vietmoney%2Freact-big-calendar",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "package_name": "@vietmoney/react-big-calendar",
+      "current_status": "security_placeholder",
+      "current_version": "0.0.1-security",
+      "current_maintainer": "npm-support",
+      "version_timeline": {
+        "0.26.0": {
+          "published": "2021-03-25T07:47:08.861Z",
+          "status": "legitimate",
+          "note": "Original legitimate version"
+        },
+        "0.26.1": {
+          "published": "2025-12-28T16:56:51.729Z",
+          "status": "malicious",
+          "note": "Compromised version - 4.75 years after legitimate release"
+        },
+        "0.26.2": {
+          "published": "2025-12-28T18:34:53.230Z",
+          "status": "malicious",
+          "note": "Second compromised version - same day as 0.26.1"
+        },
+        "0.0.1-security": {
+          "published": "2025-12-31T13:19:14.503Z",
+          "status": "placeholder",
+          "note": "npm security team takeover"
+        }
+      },
+      "dormancy_period_days": 1734,
+      "dormancy_period_years": 4.75,
+      "compromise_date": "2025-12-28",
+      "remediation_date": "2025-12-31"
+    }
+  },
+  {
+    "evidence_id": "hoquocdat-public-events",
+    "evidence_type": "github_events",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "Recent public GitHub events for hoquocdat (last 90 days)",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/users/hoquocdat/events",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "total_events": 1,
+      "events": [
+        {
+          "id": "6776741193",
+          "type": "CreateEvent",
+          "created_at": "2025-12-16T15:49:03Z",
+          "repo": "hoquocdat/vb-technical-assignment",
+          "ref_type": "branch",
+          "ref": "main"
+        }
+      ],
+      "note": "Only 1 public event in last 90 days - low activity profile"
+    }
+  },
+  {
+    "evidence_id": "hoquocdat-gists",
+    "evidence_type": "github_gists",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "Public gists for hoquocdat user",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/users/hoquocdat/gists",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "total_gists": 2,
+      "gists": [
+        {
+          "id": "0826b1fb642c3b9cf2a9da3ec903139c",
+          "filename": "Keybase.md",
+          "created_at": "2019-09-11T14:12:04Z",
+          "note": "Keybase identity proof - links GitHub identity to Keybase"
+        },
+        {
+          "id": "ae4ecc4c624ec75ce3bf7e071842df26",
+          "filename": "gistfile1.txt",
+          "created_at": "2022-02-10T09:17:38Z",
+          "size": 27226
+        }
+      ]
+    }
+  },
+  {
+    "evidence_id": "hoquocdat-following-link",
+    "evidence_type": "account_linkage",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "hoquocdat follows hoquocdat-old, confirming same person owns both accounts",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/users/hoquocdat/following",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "source_account": "hoquocdat",
+      "linked_account": "hoquocdat-old",
+      "relationship": "follows",
+      "analysis": "Both accounts share same location (Ho Chi Minh City) and 'Ho' surname pattern (Ho Quoc Dat / Danny Ho). hoquocdat-old was created in 2014, abandoned in 2019, then hoquocdat became primary account.",
+      "implication": "Account is legitimate developer with 10+ year GitHub history, not a sleeper/fake account"
+    }
+  },
+  {
+    "evidence_id": "hoquocdat-repos-summary",
+    "evidence_type": "repo_analysis",
+    "observed_when": "2026-01-02T12:30:00Z",
+    "observed_by": "github_api",
+    "observed_what": "Analysis of hoquocdat public repositories",
+    "verification": {
+      "source": "github_api",
+      "url": "https://api.github.com/users/hoquocdat/repos",
+      "verified_at": "2026-01-02T12:30:00Z"
+    },
+    "data": {
+      "total_repos": 18,
+      "forks": 11,
+      "original": 7,
+      "notable_repos": [
+        {"name": "argo-cd", "fork": true, "created": "2023-06-28"},
+        {"name": "cwtb-consumer", "fork": true, "created": "2025-02-24"},
+        {"name": "docs", "fork": false, "created": "2025-07-04"},
+        {"name": "frontera", "fork": true, "created": "2021-01-20"},
+        {"name": "loan-service", "fork": false, "created": "2023-08-22"},
+        {"name": "vb-technical-assignment", "fork": false, "created": "2025-12-16"}
+      ],
+      "activity_pattern": "Sporadic activity with long gaps - consistent with claim of dormancy",
+      "no_react_big_calendar": true
+    }
+  },
+  {
+    "evidence_id": "dormancy-analysis",
+    "evidence_type": "timeline_analysis",
+    "observed_when": "2026-01-02T12:35:00Z",
+    "observed_by": "analyst",
+    "observed_what": "Timeline analysis of hoquocdat account activity and npm dormancy claim",
+    "verification": {
+      "source": "cross_reference",
+      "sources_used": ["github_api", "npm_registry"]
+    },
+    "data": {
+      "claim": "Account dormant 4 years before compromise",
+      "npm_evidence": {
+        "last_legitimate_publish": "2021-03-25",
+        "first_malicious_publish": "2025-12-28",
+        "gap_years": 4.75
+      },
+      "github_evidence": {
+        "account_created": "2018-03-19",
+        "account_updated": "2025-12-25",
+        "keybase_gist": "2019-09-11",
+        "recent_gist": "2022-02-10",
+        "recent_repo_activity": "2025-12-16"
+      },
+      "verdict": "PARTIALLY_SUPPORTED",
+      "analysis": "The npm package @vietmoney/react-big-calendar was indeed dormant for 4.75 years (Mar 2021 - Dec 2025). However, the GitHub account itself was NOT fully dormant - it had activity in 2022, 2023, and 2025. The '4 year dormancy' claim specifically applies to npm publishing for this package, not the entire GitHub account."
+    }
+  },
+  {
+    "evidence_id": "account-compromise-indicators",
+    "evidence_type": "ioc_analysis",
+    "observed_when": "2026-01-02T12:35:00Z",
+    "observed_by": "analyst",
+    "observed_what": "Indicators of account compromise vs sleeper account",
+    "verification": {
+      "source": "cross_reference"
+    },
+    "data": {
+      "compromise_indicators": [
+        "Long gap between legitimate (0.26.0) and malicious (0.26.1) npm versions",
+        "Malicious versions published in rapid succession (same day)",
+        "Account profile updated 2025-12-25, 3 days before malicious publish",
+        "vietmoney/react-big-calendar repo does not exist - attacker had npm access but no GitHub repo access"
+      ],
+      "legitimate_developer_indicators": [
+        "10+ year GitHub history (hoquocdat-old since 2014)",
+        "Consistent Ho Chi Minh City location across accounts",
+        "Member of legitimate fintech org (vietmoney)",
+        "Keybase identity verification (2019)",
+        "Ongoing GitHub activity (repos in 2023, 2025)",
+        "Following list includes hoquocdat-old (self-link)",
+        "Professional bio and hireable status"
+      ],
+      "sleeper_account_indicators": [
+        "None - this is a compromised legitimate account, not a sleeper"
+      ],
+      "verdict": "COMPROMISED_LEGITIMATE_ACCOUNT",
+      "confidence": "HIGH"
+    }
+  }
+]

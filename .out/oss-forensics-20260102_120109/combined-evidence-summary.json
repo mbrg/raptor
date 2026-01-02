@@ -1,0 +1,772 @@
+{
+  "metadata": {
+    "investigation": "Shai Hulud 3.0 - The Golden Path",
+    "date": "2026-01-02",
+    "sources": [
+      "github_api",
+      "gharchive_bigquery"
+    ]
+  },
+  "api_evidence": [
+    {
+      "evidence_id": "repo-search-v1-shai-hulud-repository",
+      "evidence_type": "search_result",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "Repository search for v1 marker 'Shai-Hulud Repository in:description' returned 31 repositories",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/search/repositories?q=Shai-Hulud+Repository+in:description",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "total_count": 31,
+        "marker": "Shai-Hulud Repository.",
+        "key_repos": [
+          "B611/Shai-Hulud",
+          "Srylax/awesome-shai-hulud",
+          "nagliwiz/Shai-Hulud-Hulud-Shai",
+          "sacfirstassault/Shai-Hulud",
+          "SK3Artemis/Shai-Hulud"
+        ]
+      }
+    },
+    {
+      "evidence_id": "repo-search-v2-sha1-hulud",
+      "evidence_type": "search_result",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "Repository search for v2 marker 'Sha1-Hulud in:description' returned 269 repositories",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/search/repositories?q=Sha1-Hulud+in:description",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "total_count": 269,
+        "marker": "Sha1-Hulud",
+        "key_repos": [
+          "standujar/sha1-hulud-scanner",
+          "Security-Phoenix-demo/Shai-Hulud-Sha1-Hulud-V2-npm-compromise-scanner",
+          "mscalindt/top-secret",
+          "developerjhp/sha1-hulud-scanner",
+          "jaucourt/sha1-hulud-scan"
+        ],
+        "note": "Many are scanner/detection tools created by security researchers"
+      }
+    },
+    {
+      "evidence_id": "repo-search-v3-goldox-t3chs",
+      "evidence_type": "search_result",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "Repository search for v3 marker 'Goldox-T3chs in:description' returned 0 repositories",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/search/repositories?q=Goldox-T3chs+in:description",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "total_count": 0,
+        "marker": "Goldox-T3chs: Only Happy Girl.",
+        "note": "v3 repos appear to have been deleted or marker changed - requires GH Archive for historical data"
+      }
+    },
+    {
+      "evidence_id": "repo-b611-shai-hulud",
+      "evidence_type": "repository_observation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "B611/Shai-Hulud repository - key v1 Shai-Hulud repository",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/repos/B611/Shai-Hulud",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "full_name": "B611/Shai-Hulud",
+        "description": " Shai-Hulud Repository.",
+        "created_at": "2025-09-16T11:39:02Z",
+        "updated_at": "2025-12-01T09:16:04Z",
+        "pushed_at": "2025-09-16T11:42:22Z",
+        "html_url": "https://github.com/B611/Shai-Hulud",
+        "stargazers_count": 11,
+        "forks_count": 3,
+        "open_issues_count": 1,
+        "owner": {
+          "login": "B611",
+          "id": 35844889,
+          "type": "User"
+        }
+      }
+    },
+    {
+      "evidence_id": "commit-b611-initial",
+      "evidence_type": "commit_observation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "Initial commit of B611/Shai-Hulud repository",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/repos/B611/Shai-Hulud/commits/60c72debaffd260c9b6c3320b56f1f72b5006fa1",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "sha": "60c72debaffd260c9b6c3320b56f1f72b5006fa1",
+        "message": "Initial commit",
+        "author": {
+          "name": "B611",
+          "email": "35844889+B611@users.noreply.github.com",
+          "date": "2025-09-16T11:42:22Z"
+        },
+        "verified": true,
+        "verification_reason": "valid"
+      }
+    },
+    {
+      "evidence_id": "user-b611",
+      "evidence_type": "user_observation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "B611 user profile - owner of key Shai-Hulud repo",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/users/B611",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "login": "B611",
+        "id": 35844889,
+        "location": "France, Paris",
+        "company": "1",
+        "hireable": true,
+        "public_repos": 13,
+        "followers": 12,
+        "following": 50,
+        "created_at": "2018-01-26T16:09:04Z",
+        "updated_at": "2025-12-03T13:08:41Z",
+        "html_url": "https://github.com/B611"
+      }
+    },
+    {
+      "evidence_id": "forks-b611-shai-hulud",
+      "evidence_type": "fork_observation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "Forks of B611/Shai-Hulud repository - 3 forks found",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/repos/B611/Shai-Hulud/forks",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "forks": [
+          {
+            "full_name": "Zh1-An/Shai-Hulud",
+            "created_at": "2025-12-08T02:07:56Z",
+            "owner_id": 111112629
+          },
+          {
+            "full_name": "arawo/Shai-Hulud",
+            "created_at": "2025-09-19T13:47:48Z",
+            "owner_id": 6019285
+          },
+          {
+            "full_name": "adaptive-enforcement-lab/Shai-Hulud",
+            "created_at": "2025-09-18T12:32:56Z",
+            "owner_type": "Organization",
+            "owner_id": 200854517
+          }
+        ]
+      }
+    },
+    {
+      "evidence_id": "repo-nagliwiz-warning",
+      "evidence_type": "repository_observation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "nagliwiz/Shai-Hulud-Hulud-Shai - Security warning repository about Shai-Hulud attack",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/repos/nagliwiz/Shai-Hulud-Hulud-Shai",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "full_name": "nagliwiz/Shai-Hulud-Hulud-Shai",
+        "description": "Please stay safe, search over Github if any of your employees had secrets leaked through a repository named Shai-Hulud or Shai-Hulud-Migration in text.",
+        "created_at": "2025-09-16T10:40:50Z",
+        "html_url": "https://github.com/nagliwiz/Shai-Hulud-Hulud-Shai",
+        "stargazers_count": 4,
+        "note": "This is a warning/advisory repo, not malicious"
+      }
+    },
+    {
+      "evidence_id": "org-vietmoney",
+      "evidence_type": "organization_observation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "vietmoney organization - victim organization whose npm package was compromised",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/orgs/vietmoney/repos",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "login": "vietmoney",
+        "id": 61444805,
+        "type": "Organization",
+        "html_url": "https://github.com/vietmoney",
+        "repos": [
+          {
+            "name": "openapi-sdk",
+            "created_at": "2020-02-25T04:12:10Z",
+            "language": "JavaScript"
+          },
+          {
+            "name": "react-native-pjsip",
+            "created_at": "2021-03-12T15:04:20Z",
+            "fork": true
+          },
+          {
+            "name": "face-anti-spoofing",
+            "created_at": "2021-04-16T10:27:45Z",
+            "language": "Python"
+          },
+          {
+            "name": "rn-zalo",
+            "created_at": "2021-07-05T11:20:59Z",
+            "fork": true
+          },
+          {
+            "name": "react-image-gallery",
+            "created_at": "2021-11-03T06:39:25Z",
+            "fork": true
+          }
+        ],
+        "compromised_package": "@vietmoney/react-big-calendar@0.26.2",
+        "note": "Organization appears legitimate - victim of account compromise or npm credential theft"
+      }
+    },
+    {
+      "evidence_id": "issue-trust-wallet-heist",
+      "evidence_type": "security_incident",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "SecurityWeek report: Shai-Hulud Supply Chain Attack Led to $8.5 Million Trust Wallet Heist",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/repos/SecOpsNews/news/issues/61546",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "issue_url": "https://github.com/SecOpsNews/news/issues/61546",
+        "title": "[SecurityWeek] Shai-Hulud Supply Chain Attack Led to $8.5 Million Trust Wallet Heist",
+        "body": "The worm exposed Trust Wallet's Developer GitHub secrets, allowing attackers to publish a backdoor extension and steal funds from 2,520 wallets.",
+        "created_at": "2025-12-31T12:38:57Z",
+        "source_url": "https://www.securityweek.com/shai-hulud-supply-chain-attack-led-to-8-5-million-trust-wallet-heist/",
+        "impact": {
+          "financial_loss": "$8.5 million",
+          "wallets_affected": 2520,
+          "attack_vector": "GitHub secrets exfiltration -> backdoor browser extension"
+        }
+      }
+    },
+    {
+      "evidence_id": "search-issues-supply-chain",
+      "evidence_type": "search_result",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "Issue search for 'Shai Hulud supply chain' returned 434 results",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/search/issues?q=Shai+Hulud+supply+chain",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "total_count": 434,
+        "note": "High volume of security discussions indicates widespread awareness of the attack"
+      }
+    },
+    {
+      "evidence_id": "scanner-security-phoenix",
+      "evidence_type": "security_tool",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "Security-Phoenix-demo Shai-Hulud scanner tool",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/repos/Security-Phoenix-demo/Shai-Hulud-Sha1-Hulud-V2-npm-compromise-scanner",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "full_name": "Security-Phoenix-demo/Shai-Hulud-Sha1-Hulud-V2-npm-compromise-scanner",
+        "description": "Script to verify if Shai Hulud and Sha1-Hulud NPM package alike are affecting your NPM Build",
+        "created_at": "2025-09-16T10:54:26Z",
+        "html_url": "https://github.com/Security-Phoenix-demo/Shai-Hulud-Sha1-Hulud-V2-npm-compromise-scanner",
+        "homepage": "https://phoenix.security/shai-hulud-second-coming-npms-biggest-supply-chain-breach/",
+        "language": "Python",
+        "topics": [
+          "shai-hulud",
+          "shai-hulud-attack",
+          "shai-hulud-detector",
+          "shai-hulud2",
+          "supply"
+        ]
+      }
+    },
+    {
+      "evidence_id": "scanner-standujar",
+      "evidence_type": "security_tool",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "standujar sha1-hulud-scanner - 288+ packages detection",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/repos/standujar/sha1-hulud-scanner",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "full_name": "standujar/sha1-hulud-scanner",
+        "description": "Comprehensive bash scanner to detect compromised npm packages from the SHA1-HULUD pt 2 supply chain attack (288+ packages)",
+        "created_at": "2025-11-24T14:36:34Z",
+        "html_url": "https://github.com/standujar/sha1-hulud-scanner",
+        "language": "Shell",
+        "stargazers_count": 32,
+        "note": "Indicates 288+ packages were compromised in v2"
+      }
+    },
+    {
+      "evidence_id": "repo-mscalindt-v2",
+      "evidence_type": "repository_observation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "mscalindt/top-secret - repo with v2 marker in description",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/search/repositories?q=Sha1-Hulud+in:description",
+        "verified_at": "2026-01-02T12:01:09Z"
+      },
+      "data": {
+        "full_name": "mscalindt/top-secret",
+        "description": "Sha1-Hulud: The Second Coming.",
+        "created_at": "2020-07-15T12:13:20Z",
+        "html_url": "https://github.com/mscalindt/top-secret",
+        "topics": [
+          "chalga",
+          "keys",
+          "nudes",
+          "passwords",
+          "succotash"
+        ],
+        "note": "Appears to be research/analysis repo, created before Shai-Hulud campaign but description updated"
+      }
+    },
+    {
+      "evidence_id": "ioc-v3-goldox-t3chs",
+      "evidence_type": "ioc",
+      "ioc_type": "REPOSITORY_DESCRIPTION_MARKER",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "security_vendor",
+      "observed_what": "v3 repository description marker: Goldox-T3chs: Only Happy Girl.",
+      "verification": {
+        "source": "security_vendor",
+        "url": "https://www.securityweek.com/shai-hulud-supply-chain-attack-led-to-8-5-million-trust-wallet-heist/",
+        "verified_at": null
+      },
+      "data": {
+        "value": "Goldox-T3chs: Only Happy Girl.",
+        "campaign_version": "3.0",
+        "codename": "The Golden Path",
+        "github_search_results": 0,
+        "note": "No repos found with this marker - may be deleted or marker changed"
+      }
+    },
+    {
+      "evidence_id": "ioc-c2-domain",
+      "evidence_type": "ioc",
+      "ioc_type": "DOMAIN",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "security_vendor",
+      "observed_what": "C2 domain used by Shai Hulud 3.0",
+      "verification": {
+        "source": "security_vendor",
+        "url": "https://www.securityweek.com/shai-hulud-supply-chain-attack-led-to-8-5-million-trust-wallet-heist/"
+      },
+      "data": {
+        "value": "m.fasterxml.org:51211",
+        "type": "c2_server",
+        "campaign_version": "3.0",
+        "note": "Typosquat of legitimate fasterxml.org domain"
+      }
+    },
+    {
+      "evidence_id": "ioc-malicious-files",
+      "evidence_type": "ioc",
+      "ioc_type": "FILE_PATH",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "security_vendor",
+      "observed_what": "Malicious file names used by Shai Hulud 3.0",
+      "verification": {
+        "source": "security_vendor",
+        "url": "https://www.securityweek.com/shai-hulud-supply-chain-attack-led-to-8-5-million-trust-wallet-heist/"
+      },
+      "data": {
+        "loader_files": [
+          "bun_installer.js",
+          "environment_source.js"
+        ],
+        "exfil_files": [
+          "3nvir0nm3nt.json",
+          "cl0vd.json",
+          "c9nt3nts.json",
+          "pigS3cr3ts.json"
+        ],
+        "campaign_version": "3.0",
+        "note": "File names use leetspeak obfuscation"
+      }
+    },
+    {
+      "evidence_id": "ioc-npm-package",
+      "evidence_type": "ioc",
+      "ioc_type": "PACKAGE",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "security_vendor",
+      "observed_what": "Compromised npm package",
+      "verification": {
+        "source": "security_vendor",
+        "url": "https://www.securityweek.com/shai-hulud-supply-chain-attack-led-to-8-5-million-trust-wallet-heist/"
+      },
+      "data": {
+        "value": "@vietmoney/react-big-calendar@0.26.2",
+        "registry": "npm",
+        "campaign_version": "3.0"
+      }
+    },
+    {
+      "evidence_id": "code-search-blocked",
+      "evidence_type": "search_limitation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "Code search requires authentication - could not search for malicious code patterns",
+      "verification": {
+        "source": "github_api",
+        "url": "https://api.github.com/search/code?q=bun_installer.js"
+      },
+      "data": {
+        "error": "Must be authenticated to access the code search API",
+        "queries_blocked": [
+          "bun_installer.js",
+          "environment_source.js",
+          "3nvir0nm3nt.json",
+          "m.fasterxml.org"
+        ],
+        "note": "Authenticated GitHub token needed for code search"
+      }
+    },
+    {
+      "evidence_id": "rate-limit-hit",
+      "evidence_type": "collection_limitation",
+      "observed_when": "2026-01-02T12:01:09Z",
+      "observed_by": "github_api",
+      "observed_what": "GitHub API rate limit exceeded during collection",
+      "verification": {
+        "source": "github_api",
+        "url": "https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting"
+      },
+      "data": {
+        "limit": 60,
+        "type": "unauthenticated",
+        "impact": "Could not fetch Datadog IOC repository",
+        "note": "60 requests/hour for unauthenticated requests"
+      }
+    },
+    {
+      "evidence_id": "wayback-negative-npm-package",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "NO ARCHIVE FOUND: @vietmoney/react-big-calendar npm package page never archived",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://archive.org/wayback/available?url=https://www.npmjs.com/package/@vietmoney/react-big-calendar",
+        "result": "no_archived_snapshots"
+      },
+      "data": {
+        "target_url": "https://www.npmjs.com/package/@vietmoney/react-big-calendar",
+        "finding": "NOT_ARCHIVED",
+        "importance": "Primary malicious package - never captured before deletion",
+        "forensic_value": "LOW - cannot recover package page content"
+      }
+    },
+    {
+      "evidence_id": "wayback-negative-npm-registry",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "NO ARCHIVE FOUND: npm registry API for @vietmoney/react-big-calendar not archived",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://archive.org/wayback/available?url=https://registry.npmjs.org/@vietmoney/react-big-calendar",
+        "result": "no_archived_snapshots"
+      },
+      "data": {
+        "target_url": "https://registry.npmjs.org/@vietmoney/react-big-calendar",
+        "finding": "NOT_ARCHIVED",
+        "importance": "Package metadata/versions not captured",
+        "forensic_value": "LOW - cannot recover publish timestamps or tarball hashes"
+      }
+    },
+    {
+      "evidence_id": "wayback-negative-npm-profile",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "NO ARCHIVE FOUND: vietmoney npm user profile not archived",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://archive.org/wayback/available?url=https://www.npmjs.com/~vietmoney"
+      },
+      "data": {
+        "target_url": "https://www.npmjs.com/~vietmoney",
+        "finding": "NOT_ARCHIVED",
+        "importance": "Cannot verify maintainer account history"
+      }
+    },
+    {
+      "evidence_id": "wayback-negative-github-vietmoney",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "NO ARCHIVE FOUND: github.com/vietmoney organization not archived",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://archive.org/wayback/available?url=https://github.com/vietmoney"
+      },
+      "data": {
+        "target_url": "https://github.com/vietmoney",
+        "finding": "NOT_ARCHIVED"
+      }
+    },
+    {
+      "evidence_id": "wayback-negative-goldox",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "NO ARCHIVE FOUND: Goldox-T3chs GitHub account not archived",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://archive.org/wayback/available?url=https://github.com/Goldox-T3chs"
+      },
+      "data": {
+        "target_url": "https://github.com/Goldox-T3chs",
+        "finding": "NOT_ARCHIVED",
+        "importance": "v3 campaign marker account - no historical record"
+      }
+    },
+    {
+      "evidence_id": "wayback-negative-c2-fasterxml",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "NO ARCHIVE FOUND: m.fasterxml.org C2 domain not archived",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://archive.org/wayback/available?url=https://m.fasterxml.org"
+      },
+      "data": {
+        "target_url": "https://m.fasterxml.org",
+        "finding": "NOT_ARCHIVED",
+        "importance": "C2 infrastructure never captured - expected for ephemeral attack infra",
+        "note": "This is the malicious typosquat of legitimate fasterxml.org"
+      }
+    },
+    {
+      "evidence_id": "wayback-positive-unit42-npm-supply-chain",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "ARCHIVED: Unit42 npm supply chain attack article from Dec 16, 2025 (12 days before Shai Hulud 3.0 detection)",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://web.archive.org/web/20251216154746/https://unit42.paloaltonetworks.com/npm-supply-chain-attack/",
+        "verified_at": "2026-01-02T12:11:34.102110+00:00"
+      },
+      "data": {
+        "original_url": "https://unit42.paloaltonetworks.com/npm-supply-chain-attack/",
+        "archive_url": "https://web.archive.org/web/20251216154746/https://unit42.paloaltonetworks.com/npm-supply-chain-attack/",
+        "timestamp": "20251216154746",
+        "archive_date": "2025-12-16T15:47:46Z",
+        "finding": "ARCHIVED",
+        "importance": "HIGH - may contain early warning or related incident details",
+        "note": "Article from 12 days before Dec 28 detection - could be about earlier Shai-Hulud versions or precursor"
+      }
+    },
+    {
+      "evidence_id": "wayback-positive-unit42-supply-chain-tag",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "ARCHIVED: Unit42 supply-chain tag page listing related articles",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://web.archive.org/web/20251212013018/https://unit42.paloaltonetworks.com/tag/supply-chain/"
+      },
+      "data": {
+        "original_url": "https://unit42.paloaltonetworks.com/tag/supply-chain/",
+        "archive_url": "https://web.archive.org/web/20251212013018/https://unit42.paloaltonetworks.com/tag/supply-chain/",
+        "timestamp": "20251212013018",
+        "archive_date": "2025-12-12T01:30:18Z",
+        "finding": "ARCHIVED"
+      }
+    },
+    {
+      "evidence_id": "wayback-positive-github-advisories",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "ARCHIVED: GitHub Security Advisories page from Dec 30, 2025 (2 days after Shai Hulud detection)",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://web.archive.org/web/20251230134633/https://github.com/advisories"
+      },
+      "data": {
+        "original_url": "https://github.com/advisories",
+        "archive_url": "https://web.archive.org/web/20251230134633/https://github.com/advisories",
+        "timestamp": "20251230134633",
+        "archive_date": "2025-12-30T13:46:33Z",
+        "finding": "ARCHIVED",
+        "importance": "HIGH - may contain Shai Hulud 3.0 security advisories",
+        "note": "Captured 2 days after detection - likely contains fresh advisories about the incident"
+      }
+    },
+    {
+      "evidence_id": "wayback-positive-github-blog-security",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "ARCHIVED: GitHub Security Blog from Dec 15, 2025",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://web.archive.org/web/20251215175931/https://github.blog/security"
+      },
+      "data": {
+        "original_url": "https://github.blog/security",
+        "archive_url": "https://web.archive.org/web/20251215175931/https://github.blog/security",
+        "timestamp": "20251215175931",
+        "finding": "ARCHIVED"
+      }
+    },
+    {
+      "evidence_id": "wayback-positive-socket-npm",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "ARCHIVED: Socket.dev npm package tracker from Nov 2025",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://web.archive.org/web/20251113160511/https://socket.dev/npm"
+      },
+      "data": {
+        "original_url": "https://socket.dev/npm",
+        "archive_url": "https://web.archive.org/web/20251113160511/https://socket.dev/npm",
+        "timestamp": "20251113160511",
+        "finding": "ARCHIVED"
+      }
+    },
+    {
+      "evidence_id": "wayback-positive-snyk-npm-vuln",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "ARCHIVED: Snyk npm vulnerability database from Nov 2025",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://web.archive.org/web/20251116092155/https://security.snyk.io/vuln/npm"
+      },
+      "data": {
+        "original_url": "https://security.snyk.io/vuln/npm",
+        "archive_url": "https://web.archive.org/web/20251116092155/https://security.snyk.io/vuln/npm",
+        "timestamp": "20251116092155",
+        "finding": "ARCHIVED"
+      }
+    },
+    {
+      "evidence_id": "wayback-positive-fasterxml-legit",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "ARCHIVED: Legitimate fasterxml.org domain (attackers typosquatted m.fasterxml.org) - OLD ARCHIVE from 2016",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://web.archive.org/web/20161021113414/http://fasterxml.org/"
+      },
+      "data": {
+        "original_url": "https://fasterxml.org",
+        "archive_url": "https://web.archive.org/web/20161021113414/http://fasterxml.org/",
+        "timestamp": "20161021113414",
+        "finding": "ARCHIVED",
+        "importance": "CONTEXT - shows legitimate domain that attackers typosquatted",
+        "note": "Old archive from 2016 - demonstrates the legitimate site the C2 mimics"
+      }
+    },
+    {
+      "evidence_id": "wayback-positive-shaihulud-github-old",
+      "evidence_type": "wayback_recovery",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_machine",
+      "observed_what": "ARCHIVED: github.com/shaihulud user profile from Dec 2022 - LIKELY UNRELATED to 2025 attack",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://web.archive.org/web/20221231124732/https://github.com/shaihulud"
+      },
+      "data": {
+        "original_url": "https://github.com/shaihulud",
+        "archive_url": "https://web.archive.org/web/20221231124732/https://github.com/shaihulud",
+        "timestamp": "20221231124732",
+        "archive_date": "2022-12-31T12:47:32Z",
+        "finding": "ARCHIVED_OLD",
+        "importance": "LOW - likely coincidental name match, not the 2025 attacker",
+        "note": "Archive from 2022, 3 years before Shai Hulud 3.0 attack. Name may be Dune reference."
+      }
+    },
+    {
+      "evidence_id": "wayback-recovery-summary",
+      "evidence_type": "recovery_summary",
+      "observed_when": "2026-01-02T12:11:34.102110+00:00",
+      "observed_by": "wayback_agent",
+      "observed_what": "Wayback Machine recovery summary for Shai Hulud 3.0 investigation",
+      "verification": {
+        "source": "wayback_machine",
+        "url": "https://archive.org/wayback/"
+      },
+      "data": {
+        "total_urls_checked": 25,
+        "positive_findings": 8,
+        "negative_findings": 6,
+        "key_finding": "Primary attack infrastructure (npm package, attacker accounts, C2 domain) was NEVER ARCHIVED - typical for ephemeral attack campaigns",
+        "high_value_archives": [
+          "Unit42 npm supply chain article (Dec 16, 2025)",
+          "GitHub Advisories (Dec 30, 2025)"
+        ],
+        "recommendation": "Content from Unit42 article and GitHub Advisories may contain valuable details about the attack. Consider fetching full content."
+      }
+    }
+  ],
+  "gharchive_evidence_count": 2587,
+  "gharchive_evidence_summary": {
+    "total_events": 2587,
+    "by_type": {
+      "delete": 85,
+      "push": 1456,
+      "pull_request": 224,
+      "create": 273,
+      "fork": 63,
+      "issue_comment": 79,
+      "watch": 315,
+      "member": 10,
+      "issue": 49,
+      "release": 22,
+      "public": 11
+    }
+  }
+}
