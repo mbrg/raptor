@@ -590,6 +590,13 @@ def convert_validated_to_agent_format(data: dict) -> List[Dict[str, Any]]:
             "finding_id": f.id,
             "rule_id": f.rule_id or f.vuln_type,
             "file": f.file,
+            # Mirror to ``file_path`` too: the prioritisation/exclusion
+            # helpers (apply_prefer_globs / apply_exclude_dir_globs) match
+            # on ``file_path``. Without this mirror, operator --prefer /
+            # --exclude-dir globs silently no-op on the validated-findings
+            # path (every file_path is None), so SCA/test findings can't be
+            # filtered and the cap fills with un-prioritised findings.
+            "file_path": f.file,
             "startLine": f.line,
             "endLine": f.line,
             "snippet": f.proof.vulnerable_code,
@@ -613,10 +620,21 @@ class AutonomousSecurityAgentV2:
                  verify_exploits: bool = True,
                  judge_intent: bool = True,
                  record_witnesses: bool = True,
-                 use_verified_exemplars: bool = True):
+                 use_verified_exemplars: bool = True,
+                 generate_exploits: bool = True,
+                 generate_patches: bool = True):
         self.repo_path = repo_path
         self.out_dir = out_dir
         self.out_dir.mkdir(parents=True, exist_ok=True)
+        # Exploit / patch generation are LLM-backed and the slowest
+        # per-finding calls (PoC synthesis can exceed the per-call
+        # timeout). Default on; opt out via ``--no-exploits`` /
+        # ``--no-patches`` for verdict-only runs. The wrapper
+        # (raptor_agentic.py) forwards its same-named flags here so the
+        # operator's intent reaches this loop — previously the wrapper
+        # flag never propagated and exploit generation ran regardless.
+        self.generate_exploits = generate_exploits
+        self.generate_patches = generate_patches
         # KNighter follow-up: synthesise a checker rule for every
         # confirmed exploitable finding and emit suspicious annotations
         # for variants found across the codebase. Default on; opt out
@@ -2212,11 +2230,11 @@ class AutonomousSecurityAgentV2:
                         exploitable += 1
 
                         # 2. Generate exploit using LLM
-                        if self.generate_exploit(vuln):
+                        if self.generate_exploits and self.generate_exploit(vuln):
                             exploits_generated += 1
 
                         # 3. Generate patch using LLM (only for exploitable)
-                        if self.generate_patch(vuln):
+                        if self.generate_patches and self.generate_patch(vuln):
                             patches_generated += 1
 
                         # 4. KNighter follow-up: synthesise a checker
@@ -2417,6 +2435,19 @@ def main() -> None:
     )
     ap.add_argument("--checklist", help="Inventory checklist.json for function metadata lookup")
     ap.add_argument(
+        "--no-exploits",
+        action="store_true",
+        help="Skip LLM exploit (PoC) generation for exploitable findings. "
+             "Verdicts (analysis) are still produced. Use for fast "
+             "verdict-only runs — exploit synthesis is the slowest "
+             "per-finding LLM call.",
+    )
+    ap.add_argument(
+        "--no-patches",
+        action="store_true",
+        help="Skip LLM patch generation for exploitable findings.",
+    )
+    ap.add_argument(
         "--no-annotations",
         action="store_true",
         help="Skip per-finding annotation emission and the "
@@ -2555,6 +2586,8 @@ def main() -> None:
         judge_intent=not args.no_judge_intent,
         record_witnesses=not args.no_record_witnesses,
         use_verified_exemplars=not args.no_verified_exemplars,
+        generate_exploits=not args.no_exploits,
+        generate_patches=not args.no_patches,
     )
 
     # Load checklist for metadata lookup
