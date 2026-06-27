@@ -2533,16 +2533,25 @@ class ClaudeCodeLLMProvider(LLMProvider):
         # the long-form rationale at the first cc subprocess.
         from core.config import RaptorConfig as _RaptorConfig
         _cc_env = _RaptorConfig.get_safe_env(preserve_proxy=True)
-        # This environment routes all outbound HTTPS through an agent proxy and
-        # needs its CA bundle + endpoint override to reach the model API. Re-add
-        # them after sanitisation (per get_safe_env's "add a custom CA bundle
-        # explicitly" guidance); the dangerous-env-var strip still applies.
-        for _k in (
+        # When `claude` runs inside a managed/proxied Claude Code environment,
+        # the nested subprocess needs the parent's outbound-proxy config, CA
+        # bundle, and Claude Code auth/routing env to reach the model API —
+        # otherwise it cannot authenticate (HTTP 401) and the autonomous
+        # pipeline falls back to prep-only with zero analysed findings.
+        # get_safe_env strips all of these; re-add them after sanitisation
+        # (its docstring directs callers to add a custom CA bundle explicitly,
+        # and note that the allowlist drops proxy vars before preserve_proxy's
+        # blocklist stage runs, so they must be re-added by name here too).
+        # The dangerous-env-var strip still applies to everything else.
+        _cc_passthrough_exact = (
             "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE",
-            "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY",
-        ):
-            _v = os.environ.get(_k)
-            if _v is not None:
+            "CURL_CA_BUNDLE", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN",
+            "ANTHROPIC_API_KEY", "HTTPS_PROXY", "https_proxy", "HTTP_PROXY",
+            "http_proxy", "NO_PROXY", "no_proxy",
+        )
+        _cc_passthrough_prefixes = ("CLAUDE_CODE_", "CCR_")
+        for _k, _v in os.environ.items():
+            if _k in _cc_passthrough_exact or _k.startswith(_cc_passthrough_prefixes):
                 _cc_env[_k] = _v
 
         # monotonic() — wall clock can jump under NTP/DST, producing
@@ -2666,16 +2675,25 @@ class ClaudeCodeLLMProvider(LLMProvider):
         # the long-form rationale at the first cc subprocess.
         from core.config import RaptorConfig as _RaptorConfig
         _cc_env = _RaptorConfig.get_safe_env(preserve_proxy=True)
-        # This environment routes all outbound HTTPS through an agent proxy and
-        # needs its CA bundle + endpoint override to reach the model API. Re-add
-        # them after sanitisation (per get_safe_env's "add a custom CA bundle
-        # explicitly" guidance); the dangerous-env-var strip still applies.
-        for _k in (
+        # When `claude` runs inside a managed/proxied Claude Code environment,
+        # the nested subprocess needs the parent's outbound-proxy config, CA
+        # bundle, and Claude Code auth/routing env to reach the model API —
+        # otherwise it cannot authenticate (HTTP 401) and the autonomous
+        # pipeline falls back to prep-only with zero analysed findings.
+        # get_safe_env strips all of these; re-add them after sanitisation
+        # (its docstring directs callers to add a custom CA bundle explicitly,
+        # and note that the allowlist drops proxy vars before preserve_proxy's
+        # blocklist stage runs, so they must be re-added by name here too).
+        # The dangerous-env-var strip still applies to everything else.
+        _cc_passthrough_exact = (
             "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE",
-            "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY",
-        ):
-            _v = os.environ.get(_k)
-            if _v is not None:
+            "CURL_CA_BUNDLE", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN",
+            "ANTHROPIC_API_KEY", "HTTPS_PROXY", "https_proxy", "HTTP_PROXY",
+            "http_proxy", "NO_PROXY", "no_proxy",
+        )
+        _cc_passthrough_prefixes = ("CLAUDE_CODE_", "CCR_")
+        for _k, _v in os.environ.items():
+            if _k in _cc_passthrough_exact or _k.startswith(_cc_passthrough_prefixes):
                 _cc_env[_k] = _v
 
         # monotonic() — wall clock can jump under NTP/DST, producing
