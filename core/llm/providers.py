@@ -2532,7 +2532,18 @@ class ClaudeCodeLLMProvider(LLMProvider):
         # vars so cc runs with a clean baseline. See
         # the long-form rationale at the first cc subprocess.
         from core.config import RaptorConfig as _RaptorConfig
-        _cc_env = _RaptorConfig.get_safe_env()
+        _cc_env = _RaptorConfig.get_safe_env(preserve_proxy=True)
+        # This environment routes all outbound HTTPS through an agent proxy and
+        # needs its CA bundle + endpoint override to reach the model API. Re-add
+        # them after sanitisation (per get_safe_env's "add a custom CA bundle
+        # explicitly" guidance); the dangerous-env-var strip still applies.
+        for _k in (
+            "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE",
+            "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY",
+        ):
+            _v = os.environ.get(_k)
+            if _v is not None:
+                _cc_env[_k] = _v
 
         # monotonic() — wall clock can jump under NTP/DST, producing
         # negative durations on long CC calls.
@@ -2654,7 +2665,18 @@ class ClaudeCodeLLMProvider(LLMProvider):
         # vars so cc runs with a clean baseline. See
         # the long-form rationale at the first cc subprocess.
         from core.config import RaptorConfig as _RaptorConfig
-        _cc_env = _RaptorConfig.get_safe_env()
+        _cc_env = _RaptorConfig.get_safe_env(preserve_proxy=True)
+        # This environment routes all outbound HTTPS through an agent proxy and
+        # needs its CA bundle + endpoint override to reach the model API. Re-add
+        # them after sanitisation (per get_safe_env's "add a custom CA bundle
+        # explicitly" guidance); the dangerous-env-var strip still applies.
+        for _k in (
+            "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE",
+            "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "ANTHROPIC_API_KEY",
+        ):
+            _v = os.environ.get(_k)
+            if _v is not None:
+                _cc_env[_k] = _v
 
         # monotonic() — wall clock can jump under NTP/DST, producing
         # negative durations on long CC calls.
