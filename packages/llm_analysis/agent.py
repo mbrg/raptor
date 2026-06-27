@@ -996,7 +996,13 @@ class AutonomousSecurityAgentV2:
                 logger.warning(f"Low-quality LLM response (q={validated.quality:.2f}), incomplete: {validated.incomplete}")
 
             vuln.exploitable = analysis.get("is_exploitable", False)
-            vuln.exploitability_score = analysis.get("exploitability_score", 0.0)
+            # `.get(key, default)` only substitutes the default for a MISSING
+            # key — an explicit ``"exploitability_score": null`` returns None,
+            # which then crashes the `:.2f` format below
+            # (unsupported format string passed to NoneType.__format__) and
+            # drops the whole finding to the heuristic fallback. Coerce None.
+            _score = analysis.get("exploitability_score")
+            vuln.exploitability_score = 0.0 if _score is None else _score
             vuln.analysis = analysis
 
             logger.info("✓ LLM analysis complete:")

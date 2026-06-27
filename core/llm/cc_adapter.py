@@ -172,6 +172,45 @@ def extract_envelope_metadata(envelope: dict, into: dict) -> None:
         into["_tokens"] = in_tokens + out_tokens
 
 
+def _loads_jsonish(text: str) -> dict[str, Any] | None:
+    """Best-effort parse of a JSON object out of model text.
+
+    Tries clean JSON, then markdown-fenced JSON, then the first ``{...}``
+    via ``raw_decode``. Returns the dict or ``None`` if nothing parses.
+    Shared by ``parse_cc_structured`` for both the top-level stdout and the
+    inner ``result`` payload of a ``--output-format json`` envelope.
+    """
+    text = (text or "").strip()
+    if not text:
+        return None
+    try:
+        obj = json.loads(text)
+        if isinstance(obj, dict):
+            return obj
+    except json.JSONDecodeError:
+        pass
+    if "```" in text:
+        for part in text.split("```")[1::2]:
+            lines = part.strip().split("\n", 1)
+            json_str = (
+                lines[1] if len(lines) > 1 and not lines[0].startswith("{") else part
+            )
+            try:
+                obj = json.loads(json_str.strip())
+                if isinstance(obj, dict):
+                    return obj
+            except (json.JSONDecodeError, IndexError):
+                continue
+    try:
+        decoder = json.JSONDecoder()
+        obj, _ = decoder.raw_decode(text, text.index("{"))
+        if isinstance(obj, dict):
+            return obj
+    except (ValueError, json.JSONDecodeError):
+        pass
+    return None
+
+
 def parse_cc_structured(
     stdout: str,
     stderr: str = "",
@@ -179,8 +218,9 @@ def parse_cc_structured(
 ) -> dict[str, Any]:
     """Parse structured JSON from ``claude -p --output-format json``.
 
-    Handles: clean JSON, envelope with structured_output, markdown-fenced
-    JSON, partial output via raw_decode fallback.
+    Handles: clean JSON, envelope with structured_output, the
+    ``--output-format json`` envelope whose payload lives in the ``result``
+    field, markdown-fenced JSON, partial output via raw_decode fallback.
     """
     content = stdout.strip()
     if not content:
@@ -204,6 +244,37 @@ def parse_cc_structured(
                 inner.setdefault("finding_id", finding_id)
                 extract_envelope_metadata(result, inner)
                 return inner
+            # `claude -p --output-format json` wraps the model's answer in an
+            # envelope whose payload lives in the ``result`` field (a JSON
+            # string under --json-schema, or fenced JSON otherwise) — NOT in
+            # ``structured_output``. Without unwrapping it the caller receives
+            # the envelope (type/is_error/result/session_id) with none of the
+            # requested schema fields, and the response validator scores it
+            # near-zero (observed q=0.08, every field "incomplete"). Detect the
+            # envelope and parse its inner payload; an is_error envelope surfaces
+            # as a structured error rather than a silently-empty result.
+            _looks_like_envelope = (
+                result.get("type") == "result"
+                or "is_error" in result
+                or "subtype" in result
+            )
+            if _looks_like_envelope and isinstance(result.get("result"), str):
+                if result.get("is_error"):
+                    from core.security.prompt_output_sanitise import (
+                        escape_nonprintable,
+                    )
+                    _msg = escape_nonprintable(
+                        redact_secrets(str(result.get("result"))[:200])
+                    )
+                    return {
+                        "finding_id": finding_id,
+                        "error": f"cc envelope reported is_error: {_msg}",
+                    }
+                inner = _loads_jsonish(result["result"])
+                if inner is not None:
+                    inner.setdefault("finding_id", finding_id)
+                    extract_envelope_metadata(result, inner)
+                    return inner
             result.setdefault("finding_id", finding_id)
             return result
     except json.JSONDecodeError:
